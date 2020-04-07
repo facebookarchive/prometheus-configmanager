@@ -1,0 +1,35 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
+#
+# This source code is licensed under the MIT license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Golang image to build prom_alertconfig service
+FROM golang:1.13-alpine3.11 as go
+
+RUN apk add git
+
+WORKDIR /app/alertmanager-configurer
+
+COPY go.mod .
+COPY go.sum .
+
+RUN go mod download
+
+COPY . .
+
+# Build alertmanager service
+WORKDIR alertmanager
+RUN go build -i -o /build/bin/alertmanager_configurer
+
+# Build migration CLI
+RUN go build -i -o /build/bin/migration
+
+FROM alpine:3.11
+
+COPY --from=go /build/bin/alertmanager_configurer /bin/alertmanager_configurer
+COPY --from=go /build/bin/migration /bin/migration
+
+# Copy config files
+COPY default_configs /etc/configs
+
+ENTRYPOINT ["alertmanager_configurer"]
