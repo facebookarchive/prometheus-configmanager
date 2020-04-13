@@ -1,0 +1,14 @@
+# Copyright (c) 2004-present Facebook All rights reserved.
+# Use of this source code is governed by a BSD-style
+# license that can be found in the LICENSE file.
+
+name: prometheus-configmanager
+apiVersion: v1
+version: 0.1.0
+description: Prometheus configmanager which provides an API to update prometheus and alertmanager configurations during runtime.
+keywords:
+  - prometheus
+maintainers:
+  - name: Scott Smith
+    email: smithscott@fb.com
+engine: gotpl
