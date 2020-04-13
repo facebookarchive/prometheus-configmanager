@@ -1,0 +1,42 @@
+{{/*
+Copyright (c) Facebook, Inc. and its affiliates.
+
+This source code is licensed under the MIT license found in the
+LICENSE file in the root directory of this source tree.
+*/}}
+{{- if .Values.prometheusConfigurer.create }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus-configurer
+  labels:
+    app.kubernetes.io/component: prometheus-configurer
+    {{- with .Values.prometheusConfigurer.service.labels }}
+{{ toYaml . | indent 4}}
+    {{- end}}
+  {{- with .Values.prometheusConfigurer.service.annotations }}
+  annotations:
+{{ toYaml . | indent 4}}
+  {{- end }}
+spec:
+  selector:
+    app.kubernetes.io/component: prometheus-configurer
+  type: {{ .Values.prometheusConfigurer.service.type }}
+  ports:
+{{- range $port := .Values.prometheusConfigurer.service.ports }}
+     - name: {{ $port.name }}
+       port: {{ $port.port }}
+       targetPort: {{ $port.targetPort }}
+{{- end }}
+{{- if eq .Values.prometheusConfigurer.service.type "LoadBalancer" }}
+  {{- if .Values.prometheusConfigurer.service.loadBalancerIP }}
+  loadBalancerIP: {{ .Values.prometheusConfigurer.service.loadBalancerIP }}
+  {{- end -}}
+  {{- if .Values.prometheusConfigurer.service.loadBalancerSourceRanges }}
+  loadBalancerSourceRanges:
+  {{- range .Values.prometheusConfigurer.service.loadBalancerSourceRanges }}
+  - {{ . }}
+  {{- end }}
+  {{- end -}}
+{{- end -}}
+{{- end }}

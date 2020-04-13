@@ -22,6 +22,7 @@ executors:
 orbs:
   docker: circleci/docker@1.0.0
   go: circleci/go@1.1.0
+  helm: circleci/helm@0.2.3
 
 commands:
 
@@ -30,6 +31,18 @@ commands:
       - go/load-cache
       - go/mod-download
       - go/save-cache
+
+  helm-lint:
+    parameters:
+      chart:
+        type: string
+      working_directory:
+        type: string
+    steps:
+      - run:
+          name: Lint <<parameters.chart>> chart
+          working_directory: <<parameters.working_directory>>
+          command: helm lint --strict <<parameters.chart>>
 
 jobs:
   build:
@@ -74,9 +87,23 @@ jobs:
           command: golangci-lint run --out-format junit-xml > ~/test-results/lint.xml
       - *storetestdir
 
+  helm-lint:
+    executor: docker/docker
+    parameters:
+      working_directory:
+        default: helm
+        type: string
+    steps:
+      - checkout
+      - helm/install-helm-client
+      - helm-lint:
+          chart: prometheus-configmanager
+          working_directory: <<parameters.working_directory>>
+
 workflows:
   version: 2.1
   all:
     jobs:
       - lint
+      - helm-lint
       - build
