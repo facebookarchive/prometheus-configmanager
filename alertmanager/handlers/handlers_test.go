@@ -109,6 +109,7 @@ func TestGetGetReceiversHandler(t *testing.T) {
 
 	var receiver []config.Receiver
 	err = json.Unmarshal(rec.Body.Bytes(), &receiver)
+	assert.NoError(t, err)
 	assert.Equal(t, 1, len(receiver))
 	assert.Equal(t, sampleReceiver, receiver[0])
 
@@ -139,7 +140,7 @@ func TestGetGetReceiversHandler(t *testing.T) {
 	//Get nonexistent alert
 	client = &mocks.AlertmanagerClient{}
 	client.On("GetReceivers", testNID).Return([]config.Receiver{sampleReceiver}, nil)
-	c, rec = buildContext(nil, http.MethodGet, "/", v1receiverNamePath, testNID)
+	c, _ = buildContext(nil, http.MethodGet, "/", v1receiverNamePath, testNID)
 	c.SetParamNames(receiverNameParam)
 	c.SetParamValues("testNewReceiver")
 
@@ -364,7 +365,7 @@ func TestDecodeReceiverPostRequest(t *testing.T) {
 	c, _ = buildContext(struct {
 		Name bool `json:"name"`
 	}{false}, http.MethodPost, "/", v1receiverPath, testNID)
-	conf, err = decodeReceiverPostRequest(c)
+	_, err = decodeReceiverPostRequest(c)
 	assert.EqualError(t, err, `error unmarshalling payload: json: cannot unmarshal bool into Go struct field Receiver.name of type string`)
 }
 
@@ -379,7 +380,7 @@ func TestDecodeRoutePostRequest(t *testing.T) {
 	c, _ = buildContext(struct {
 		Receiver bool `json:"receiver"`
 	}{false}, http.MethodPost, "/", v1receiverPath, testNID)
-	conf, err = decodeRoutePostRequest(c)
+	_, err = decodeRoutePostRequest(c)
 	assert.EqualError(t, err, `error unmarshalling route: json: cannot unmarshal bool into Go struct field Route.receiver of type string`)
 }
 

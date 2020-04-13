@@ -173,7 +173,7 @@ func TestClient_GetRoute(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, config.Route{Receiver: "tenant_base_route", Match: map[string]string{"tenantID": "other"}}, *route)
 
-	route, err = client.GetRoute("no-network")
+	_, err = client.GetRoute("no-network")
 	assert.Error(t, err)
 }
 

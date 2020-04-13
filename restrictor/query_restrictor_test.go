@@ -10,7 +10,6 @@ package restrictor
 import (
 	"testing"
 
-	"github.com/prometheus/prometheus/pkg/labels"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -26,8 +25,6 @@ func (tc *restrictorTestCase) RunTest(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, tc.expected, output)
 }
-
-var singleMatcher, _ = labels.NewMatcher(labels.MatchEqual, "networkID", "test")
 
 func TestQueryRestrictor_RestrictQuery(t *testing.T) {
 	singleLabelRestrictor := NewQueryRestrictor(DefaultOpts).AddMatcher("networkID", "test")

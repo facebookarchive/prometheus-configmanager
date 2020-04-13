@@ -163,7 +163,7 @@ func TestGetDeleteAlertHandler(t *testing.T) {
 	// Delete failed in client
 	client = &mocks.PrometheusAlertClient{}
 	client.On("DeleteRule", testNID, sampleAlert1.Alert).Return(errors.New("error"))
-	c, rec = buildContext(nil, http.MethodDelete, "/", v1alertPath, testNID)
+	c, _ = buildContext(nil, http.MethodDelete, "/", v1alertPath, testNID)
 	c.SetParamNames(ruleNameParam)
 	c.SetParamValues(sampleAlert1.Alert)
 
@@ -176,7 +176,7 @@ func TestGetDeleteAlertHandler(t *testing.T) {
 	client = &mocks.PrometheusAlertClient{}
 	client.On("DeleteRule", testNID, sampleAlert1.Alert).Return(nil)
 	client.On("ReloadPrometheus").Return(errors.New("error"))
-	c, rec = buildContext(nil, http.MethodDelete, "/", v1alertPath, testNID)
+	c, _ = buildContext(nil, http.MethodDelete, "/", v1alertPath, testNID)
 	c.SetParamNames(ruleNameParam)
 	c.SetParamValues(sampleAlert1.Alert)
 
@@ -303,7 +303,6 @@ func TestGetBulkAlertUpdateHandler(t *testing.T) {
 
 type tenancyTestCase struct {
 	name           string
-	client         *mocks.PrometheusAlertClient
 	tenantProvider paramProvider
 	context        *echo.Context
 	expectedTenant string
@@ -338,13 +337,11 @@ func TestTenancyMiddleware(t *testing.T) {
 
 	tests := []tenancyTestCase{{
 		name:           "multi-tenant with path provided tenant",
-		client:         mtClient,
 		tenantProvider: pathTenantProvider,
 		context:        &pathTenantContext,
 		expectedTenant: testNID,
 	}, {
 		name:           "multi-tenant without path provided tenant",
-		client:         mtClient,
 		tenantProvider: pathTenantProvider,
 		context:        &plainContext,
 		expectedError:  errors.New("code=400, message=Must provide tenant_id parameter"),
@@ -372,7 +369,7 @@ func TestDecodeRulePostRequest(t *testing.T) {
 	c, _ = buildContext(struct {
 		Alert int `json:"alert"`
 	}{0}, http.MethodPost, "/", v1alertPath, testNID)
-	conf, err = decodeRulePostRequest(c)
+	_, err = decodeRulePostRequest(c)
 	assert.EqualError(t, err, `error unmarshalling payload: json: cannot unmarshal number into Go struct field RuleJSONWrapper.alert of type string`)
 }
 

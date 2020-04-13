@@ -44,7 +44,7 @@ func TestFile_GetRule(t *testing.T) {
 	assert.Equal(t, sampleRule, *rule)
 
 	rule = f.GetRule("")
-	assert.Equal(t, nil, nil)
+	assert.Nil(t, rule)
 }
 
 func TestFile_AddRule(t *testing.T) {

@@ -38,8 +38,11 @@ func main() {
 	// Check if rulesDir exists and create it if not
 	if _, err := os.Stat(*rulesDir); os.IsNotExist(err) {
 		files, err := ioutil.ReadDir("/")
+		if err != nil {
+			glog.Fatalf("Could not stat directory: %v", err)
+		}
 		fmt.Println(files)
-		err = os.Mkdir(*rulesDir, 644)
+		err = os.Mkdir(*rulesDir, 0644)
 		if err != nil {
 			glog.Fatalf("Could not create rules directory: %v", err)
 		}

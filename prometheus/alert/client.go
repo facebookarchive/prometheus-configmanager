@@ -239,9 +239,12 @@ func (c *client) ReloadPrometheus() error {
 
 func (c *client) writeRuleFile(ruleFile *File, filename string) error {
 	yamlFile, err := yaml.Marshal(ruleFile)
+	if err != nil {
+		return fmt.Errorf("error writing rules file: %v\n %v", err, yamlFile)
+	}
 	err = c.fsClient.WriteFile(filename, yamlFile, 0666)
 	if err != nil {
-		return fmt.Errorf("error writing rules file: %v\n", yamlFile)
+		return fmt.Errorf("error writing rules file: %v\n %v", err, yamlFile)
 	}
 	return nil
 }
@@ -279,8 +282,8 @@ type BulkUpdateResults struct {
 
 func NewBulkUpdateResults() BulkUpdateResults {
 	return BulkUpdateResults{
-		Errors:   make(map[string]error, 0),
-		Statuses: make(map[string]string, 0),
+		Errors:   make(map[string]error),
+		Statuses: make(map[string]string),
 	}
 }
 
