@@ -1,0 +1,65 @@
+{{/*
+Copyright (c) Facebook, Inc. and its affiliates.
+
+This source code is licensed under the MIT license found in the
+LICENSE file in the root directory of this source tree.
+*/}}
+{{- if .Values.alertmanagerConfigurer.create }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alertmanager-configurer
+  labels:
+    app.kubernetes.io/component: alertmanager-configurer
+spec:
+  replicas: {{ .Values.alertmanagerConfigurer.replicas }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: alertmanager-configurer
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: alertmanager-configurer
+    spec:
+      {{- with .Values.alertmanagerConfigurer.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .Values.alertmanagerConfigurer.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .Values.alertmanagerConfigurer.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+{{ toYaml . | trimSuffix "\n" | indent 8 }}
+      {{- end }}
+
+      volumes:
+        - name: "prometheus-config"
+        {{- with .Values.volumes.prometheusConfig.volumeSpec }}
+{{ toYaml .Values.volumes.prometheusConfig.volumeSpec | indent 10 }}
+        {{- end }}
+
+      containers:
+        - name: "alertmanager-configurer"
+          image: {{ required "alertmanagerConfigurer.image.repository must be provided" .Values.alertmanagerConfigurer.image.repository }}:{{ .Values.alertmanagerConfigurer.image.tag }}
+          imagePullPolicy: {{ .Values.alertmanagerConfigurer.image.pullPolicy }}
+          ports:
+            - containerPort: 9101
+          volumeMounts:
+            - name: "prometheus-config"
+              mountPath: /etc/configs
+          args:
+            - "-port={{ .Values.alertmanagerConfigurer.alertmanagerConfigPort }}"
+            - "-alertmanager-conf={{ .Values.alertmanagerConfigurer.alertmanagerConfPath }}"
+            - "-alertmanagerURL={{ .Values.alertmanagerConfigurer.alertmanagerURL  }}"
+            {{- if .Values.alertmanagerConfigurer.multitenantLabel }}
+            - "-multitenant-label={{ .Values.alertmanagerConfigurer.multitenantLabel }}"
+            {{- end }}
+          resources:
+{{ toYaml .Values.alertmanagerConfigurer.resources | indent 12 }}
+{{- end }}

@@ -1,0 +1,42 @@
+{{/*
+Copyright (c) Facebook, Inc. and its affiliates.
+
+This source code is licensed under the MIT license found in the
+LICENSE file in the root directory of this source tree..
+*/}}
+{{- if .Values.alertmanagerConfigurer.create }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: alertmanager-configurer
+  labels:
+    app.kubernetes.io/component: alertmanager-configurer
+    {{- with .Values.alertmanagerConfigurer.service.labels }}
+{{ toYaml . | indent 4}}
+    {{- end}}
+  {{- with .Values.alertmanagerConfigurer.service.annotations }}
+  annotations:
+{{ toYaml . | indent 4}}
+  {{- end }}
+spec:
+  selector:
+    app.kubernetes.io/component: alertmanager-configurer
+  type: {{ .Values.alertmanagerConfigurer.service.type }}
+  ports:
+{{- range $port := .Values.alertmanagerConfigurer.service.ports }}
+     - name: {{ $port.name }}
+       port: {{ $port.port }}
+       targetPort: {{ $port.targetPort }}
+{{- end }}
+{{- if eq .Values.alertmanagerConfigurer.service.type "LoadBalancer" }}
+  {{- if .Values.alertmanagerConfigurer.service.loadBalancerIP }}
+  loadBalancerIP: {{ .Values.alertmanagerConfigurer.service.loadBalancerIP }}
+  {{- end -}}
+  {{- if .Values.alertmanagerConfigurer.service.loadBalancerSourceRanges }}
+  loadBalancerSourceRanges:
+  {{- range .Values.alertmanagerConfigurer.service.loadBalancerSourceRanges }}
+  - {{ . }}
+  {{- end }}
+  {{- end -}}
+{{- end -}}
+{{- end }}

@@ -1,0 +1,112 @@
+# Reference to one or more secrets to be used when pulling images
+# ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+imagePullSecrets: []
+
+volumes:
+  prometheusConfig:
+    volumeSpec: {}
+      # hostPath:
+      #   path: /configs/prometheus
+      #   type: DirectoryOrCreate
+
+prometheusConfigurer:
+  # Enable/Disable chart
+  create: true
+
+  replicas: 1
+
+  prom_port: &prom_port 9100
+
+  # Metric Label used for restricting alerts per-tenant
+  multitenantLabel: ""
+
+  # Boolean to set whether to restrict alert expressions with multitenantLabel
+  restrictQueries: false
+
+  service:
+    annotations: {}
+    labels: {}
+    type: ClusterIP
+    ports:
+      - name: prom-configmanager
+        port: *prom_port
+        targetPort: *prom_port
+
+  prometheusConfigurerPort: *prom_port
+  rulesDir: "/etc/configs/alert_rules"
+  prometheusURL: "prometheus:9090"
+
+  image:
+    repository: prometheus-configurer
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  resources: {}
+  nodeSelector: {}
+  tolerations: []
+
+  # Pod affinity must be used to ensure that this pod runs on same node as prometheus
+
+  # Use the following in your values.yml file to ensure that this pod runs on the same
+  # node as prometheus:
+  affinity: {}
+  # affinity:
+  #   podAffinity:
+  #     requiredDuringSchedulingIgnoredDuringExecution:
+  #       - labelSelector:
+  #           matchExpressions:
+  #             - key: app.kubernetes.io/component
+  #               operator: In
+  #               values:
+  #                 - prometheus
+  #         topologyKey: "kubernetes.io/hostname"
+
+alertmanagerConfigurer:
+  # Enable/Disable chart
+  create: true
+
+  replicas: 1
+
+  am_port: &am_port 9091
+
+  # Metric Label used for restricting alerts per-tenant
+  multitenantLabel: ""
+
+  service:
+    annotations: {}
+    labels: {}
+    type: ClusterIP
+    ports:
+      - name: alertmanager-config
+        port: *am_port
+        targetPort: *am_port
+
+  alertmanagerConfigPort: *am_port
+  alertmanagerConfPath: "/etc/configs/alertmanager.yml"
+  alertmanagerURL: "alertmanager:9093"
+
+  image:
+    repository: alertmanager-configurer
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  resources: {}
+  nodeSelector: {}
+  tolerations: []
+
+  # Pod affinity must be used to ensure that this pod runs on same node as prometheus
+
+  # Use the following in your values.yml file to ensure that this pod runs on the same
+  # node as prometheus:
+
+  affinity: {}
+  # affinity:
+  #   podAffinity:
+  #     requiredDuringSchedulingIgnoredDuringExecution:
+  #       - labelSelector:
+  #           matchExpressions:
+  #             - key: app.kubernetes.io/component
+  #               operator: In
+  #               values:
+  #                 - prometheus
+  #         topologyKey: "kubernetes.io/hostname"
