@@ -45,6 +45,13 @@ commands:
           command: helm lint --strict <<parameters.chart>>
 
 jobs:
+  test:
+    docker:
+      - image: circleci/golang:1.13
+    steps:
+      - run:
+          name: Test
+          command: echo ${CIRCLE_REPOSITORY_URL} && echo done
   build:
     docker:
       - image: circleci/golang:1.13
