@@ -39,6 +39,13 @@ var (
 			Channel:  "slack_alert_channel",
 		}},
 	}
+	SamplePushoverReceiver = config.Receiver{
+		Name: "pushover_receiver",
+		PushoverConfigs: []*config.PushoverConfig{{
+			UserKey: "101",
+			Token:   "0",
+		}},
+	}
 	SampleWebhookReceiver = config.Receiver{
 		Name: "webhook_receiver",
 		WebhookConfigs: []*config.WebhookConfig{{
@@ -62,7 +69,7 @@ var (
 	SampleConfig = config.Config{
 		Route: &SampleRoute,
 		Receivers: []*config.Receiver{
-			&SampleSlackReceiver, &SampleReceiver, &SampleWebhookReceiver, &SampleEmailReceiver,
+			&SampleSlackReceiver, &SampleReceiver, &SamplePushoverReceiver, &SampleWebhookReceiver, &SampleEmailReceiver,
 		},
 	}
 )
