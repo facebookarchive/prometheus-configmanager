@@ -39,6 +39,12 @@ var (
 			Channel:  "slack_alert_channel",
 		}},
 	}
+	SamplePagerDutyReceiver = config.Receiver{
+		Name: "pagerduty_receiver",
+		PagerDutyConfigs: []*config.PagerDutyConfig{{
+			ServiceKey: "0",
+		}},
+	}
 	SamplePushoverReceiver = config.Receiver{
 		Name: "pushover_receiver",
 		PushoverConfigs: []*config.PushoverConfig{{
@@ -69,7 +75,7 @@ var (
 	SampleConfig = config.Config{
 		Route: &SampleRoute,
 		Receivers: []*config.Receiver{
-			&SampleSlackReceiver, &SampleReceiver, &SamplePushoverReceiver, &SampleWebhookReceiver, &SampleEmailReceiver,
+			&SampleSlackReceiver, &SampleReceiver, &SamplePagerDutyReceiver, &SamplePushoverReceiver, &SampleWebhookReceiver, &SampleEmailReceiver,
 		},
 	}
 )
