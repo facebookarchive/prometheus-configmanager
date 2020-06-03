@@ -1,0 +1,67 @@
+version: '3.7'
+
+services:
+  prom-configurer:
+    container_name: prom-configurer
+    build:
+      context: .
+      dockerfile: Dockerfile.prometheus
+    command:
+      - '-port=9100'
+      - '-rules-dir=/etc/configs/alert_rules'
+      - '-prometheusURL=prometheus:9090'
+    volumes:
+      - ./default_configs:/etc/configs
+    ports:
+      - 9100:9100
+
+  am-configurer:
+    container_name: am-configurer
+    build:
+      context: .
+      dockerfile: Dockerfile.alertmanager
+    command:
+      - '-port=9101'
+      - '-alertmanager-conf=/etc/configs/alertmanager.yml'
+      - '-alertmanagerURL=alertmanager:9093'
+    volumes:
+      - ./default_configs:/etc/configs
+    ports:
+      - 9101:9101
+
+  alertmanager:
+    container_name: alertmanager
+    image: docker.io/prom/alertmanager
+    volumes:
+      - ./default_configs:/etc/alertmanager:ro
+    ports:
+      - 9093:9093
+
+  prometheus:
+    container_name: prometheus
+    image: docker.io/prom/prometheus
+    volumes:
+      - ./default_configs:/etc/prometheus:ro
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--web.enable-lifecycle'
+    ports:
+      - 9090:9090
+
+  alerts-ui:
+    container_name: alerts-ui
+    build:
+      context: ./ui
+      dockerfile: Dockerfile
+    stdin_open: true
+    volumes:
+      - './ui:/app'
+      - '/app/node_modules'
+    ports:
+      - 3001:3000
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+      - REACT_APP_AM_BASE_URL=http://localhost:9093/api/v2
+      - REACT_APP_AM_CONFIG_URL=http://localhost:9101/v1/0
+      - REACT_APP_PROM_CONFIG_URL=http://localhost:9100/v1/0
+      - REACT_APP_PROM_BASE_URL=http://localhost:9090/api/v1
