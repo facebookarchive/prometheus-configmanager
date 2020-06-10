@@ -62,6 +62,6 @@ services:
     environment:
       - CHOKIDAR_USEPOLLING=true
       - REACT_APP_AM_BASE_URL=http://localhost:9093/api/v2
-      - REACT_APP_AM_CONFIG_URL=http://localhost:9101/v1/0
-      - REACT_APP_PROM_CONFIG_URL=http://localhost:9100/v1/0
+      - REACT_APP_AM_CONFIG_URL=http://localhost:9101/v1
+      - REACT_APP_PROM_CONFIG_URL=http://localhost:9100/v1
       - REACT_APP_PROM_BASE_URL=http://localhost:9090/api/v1

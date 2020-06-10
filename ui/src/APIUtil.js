@@ -15,103 +15,110 @@ export const PROM_BASE_URL = process.env.REACT_APP_PROM_BASE_URL || '';
 export const AM_CONFIG_URL = process.env.REACT_APP_AM_CONFIG_URL || '';
 export const PROM_CONFIG_URL = process.env.REACT_APP_PROM_CONFIG_URL || '';
 
-export const APIUtil: ApiUtil = {
-  useAlarmsApi: useApi,
+export function APIUtil(tenantID: string): ApiUtil {
+  return {
+    useAlarmsApi: useApi,
 
-  // Alertmanager Requests
-  viewFiringAlerts: _req =>
-    makeRequest({
-      url: `${AM_BASE_URL}/alerts`,
-    }),
-  viewMatchingAlerts: ({expression}) =>
-    makeRequest({url: `${AM_BASE_URL}/matching_alerts/${expression}`}),
+    // Alertmanager Requests
+    viewFiringAlerts: _req =>
+      makeRequest({
+        url: `${AM_BASE_URL}/alerts`,
+      }),
+    viewMatchingAlerts: ({expression}) =>
+      makeRequest({url: `${AM_BASE_URL}/matching_alerts/${expression}`}),
 
-  // suppressions
-  getSuppressions: _req =>
-    makeRequest({
-      url: `${AM_BASE_URL}/silences`,
-      method: 'GET',
-    }),
-  // global config
-  getGlobalConfig: _req =>
-    makeRequest({url: `${AM_BASE_URL}/globalconfig`, method: 'GET'}),
+    // suppressions
+    getSuppressions: _req =>
+      makeRequest({
+        url: `${AM_BASE_URL}/silences`,
+        method: 'GET',
+      }),
+    // global config
+    getGlobalConfig: _req =>
+      makeRequest({url: `${AM_BASE_URL}/globalconfig`, method: 'GET'}),
 
 
-  // Prometheus Configmanager Requests
-  createAlertRule: ({rule}) =>
-    makeRequest({
-      url: `${PROM_CONFIG_URL}/alert`,
-      method: 'POST',
-      data: rule,
-    }),
-  editAlertRule: ({rule}) =>
-    makeRequest({
-      url: `${PROM_CONFIG_URL}/alert/${rule.alert}`,
-      data: rule,
-      method: 'PUT',
-    }),
-  getAlertRules: _req =>
-    makeRequest({
-      url: `${PROM_CONFIG_URL}/alert`,
-      method: 'GET',
-    }),
-  deleteAlertRule: ({ruleName}) =>
-    makeRequest({
-      url: `${PROM_CONFIG_URL}/alert/${ruleName}`,
-      method: 'DELETE',
-    }),
+    // Prometheus Configmanager Requests
+    createAlertRule: ({rule}) =>
+      makeRequest({
+        url: `${PROM_CONFIG_URL}/${tenantID}/alert`,
+        method: 'POST',
+        data: rule,
+      }),
+    editAlertRule: ({rule}) =>
+      makeRequest({
+        url: `${PROM_CONFIG_URL}/${tenantID}/alert/${rule.alert}`,
+        data: rule,
+        method: 'PUT',
+      }),
+    getAlertRules: _req =>
+      makeRequest({
+        url: `${PROM_CONFIG_URL}/${tenantID}/alert`,
+        method: 'GET',
+      }),
+    deleteAlertRule: ({ruleName}) =>
+      makeRequest({
+        url: `${PROM_CONFIG_URL}/${tenantID}/alert/${ruleName}`,
+        method: 'DELETE',
+      }),
 
-  // Alertmanager Configurer Requests
-  // receivers
-  createReceiver: ({receiver}) =>
-    makeRequest({
-      url: `${AM_CONFIG_URL}/receiver`,
-      method: 'POST',
-      data: receiver,
-    }),
-  editReceiver: ({receiver}) =>
-    makeRequest({
-      url: `${AM_CONFIG_URL}/receiver/${receiver.name}`,
-      method: 'PUT',
-      data: receiver,
-    }),
-  getReceivers: _req =>
-    makeRequest({
-      url: `${AM_CONFIG_URL}/receiver`,
-      method: 'GET',
-    }),
-  deleteReceiver: ({receiverName}) =>
-    makeRequest({
-      url: `${AM_CONFIG_URL}/receiver/${receiverName}`,
-      method: 'DELETE',
-    }),
+    // Alertmanager Configurer Requests
+    // receivers
+    createReceiver: ({receiver}) =>
+      makeRequest({
+        url: `${AM_CONFIG_URL}/${tenantID}/receiver`,
+        method: 'POST',
+        data: receiver,
+      }),
+    editReceiver: ({receiver}) =>
+      makeRequest({
+        url: `${AM_CONFIG_URL}/${tenantID}/receiver/${receiver.name}`,
+        method: 'PUT',
+        data: receiver,
+      }),
+    getReceivers: _req =>
+      makeRequest({
+        url: `${AM_CONFIG_URL}/${tenantID}/receiver`,
+        method: 'GET',
+      }),
+    deleteReceiver: ({receiverName}) =>
+      makeRequest({
+        url: `${AM_CONFIG_URL}/${tenantID}/receiver/${receiverName}`,
+        method: 'DELETE',
+      }),
 
-  // routes
-  getRouteTree: _req =>
-    makeRequest({
-      url: `${AM_CONFIG_URL}/route`,
-      method: 'GET',
-    }),
-  editRouteTree: req =>
-    makeRequest({
-      url: `${AM_CONFIG_URL}/route`,
-      method: 'POST',
-      data: req.route,
-    }),
+    // routes
+    getRouteTree: _req =>
+      makeRequest({
+        url: `${AM_CONFIG_URL}${tenantID}/route`,
+        method: 'GET',
+      }),
+    editRouteTree: req =>
+      makeRequest({
+        url: `${AM_CONFIG_URL}/${tenantID}/route`,
+        method: 'POST',
+        data: req.route,
+      }),
 
-  // metric series
-  getMetricSeries: _req =>
-    makeRequest({
-      url: `${PROM_BASE_URL}/series?match[]={__name__=~".*"}`,
-      method: 'GET',
-    }),
+    // metric series
+    getMetricSeries: _req =>
+      makeRequest({
+        url: `${PROM_BASE_URL}/series?match[]={__name__=~".*"}`,
+        method: 'GET',
+      }),
 
-  editGlobalConfig: ({config}) =>
-    makeRequest({
-      url: `${AM_CONFIG_URL}/globalconfig`,
-      method: 'POST',
-      data: config,
-    }),
+    editGlobalConfig: ({config}) =>
+      makeRequest({
+        url: `${AM_CONFIG_URL}/${tenantID}/globalconfig`,
+        method: 'POST',
+        data: config,
+      }),
+    getTenants: _req =>
+      makeRequest({
+        url: `${AM_CONFIG_URL}/tenants`,
+        method: 'GET',
+      })
+    }
 };
 
 function useApi<TParams: {...}, TResponse>(
