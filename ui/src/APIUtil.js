@@ -102,12 +102,14 @@ export function APIUtil(tenantID: string): ApiUtil {
         data: req.route,
       }),
 
-    // metric series
-    getMetricSeries: _req =>
-      makeRequest({
-        url: `${PROM_BASE_URL}/series?match[]={__name__=~".*"}`,
-        method: 'GET',
-      }),
+  // metric series
+  getMetricSeries: async function (_req) {
+    const resp = await makeRequest({
+      url: `${PROM_BASE_URL}/series?match[]={__name__=~".*"}`,
+      method: 'GET',
+    })
+    return resp.data;
+    },
 
     editGlobalConfig: ({config}) =>
       makeRequest({

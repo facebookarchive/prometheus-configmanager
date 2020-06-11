@@ -60,6 +60,7 @@ function AlarmsMain() {
             }
             alertManagerGlobalConfigEnabled={true}
             disabledTabs={['suppressions', 'routes']}
+            thresholdEditorEnabled={true}
           />
           </SnackbarProvider>
         </MuiStylesThemeProvider>
