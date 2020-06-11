@@ -50,7 +50,13 @@ function AlarmsMain() {
     <>
       <MuiThemeProvider theme={theme}>
         <MuiStylesThemeProvider theme={theme}>
-          <SnackbarProvider>
+          <SnackbarProvider
+            maxSnack={3}
+            preventDuplicate
+            anchorOrigin={{
+              vertical: 'bottom',
+              horizontal: 'right',
+          }}>
           <TenantSelector apiUtil={apiUtil} setTenantId={setTenantID} tenantID={tenantID}/>
           <Alarms
             apiUtil={apiUtil}
