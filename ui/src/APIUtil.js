@@ -20,10 +20,12 @@ export function APIUtil(tenantID: string): ApiUtil {
     useAlarmsApi: useApi,
 
     // Alertmanager Requests
-    viewFiringAlerts: _req =>
-      makeRequest({
+    viewFiringAlerts: async function(_req) {
+      const resp = await makeRequest({
         url: `${AM_BASE_URL}/alerts`,
-      }),
+      });
+      return resp.filter(alert => alert.labels.tenant === tenantID);
+    },
     viewMatchingAlerts: ({expression}) =>
       makeRequest({url: `${AM_BASE_URL}/matching_alerts/${expression}`}),
 
