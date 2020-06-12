@@ -24,6 +24,7 @@ services:
       - '-port=9101'
       - '-alertmanager-conf=/etc/configs/alertmanager.yml'
       - '-alertmanagerURL=alertmanager:9093'
+      - '-multitenant-label=tenant'
     volumes:
       - ./default_configs:/etc/configs
     ports:
