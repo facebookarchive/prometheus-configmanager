@@ -92,7 +92,7 @@ export function APIUtil(tenantID: string): ApiUtil {
     // routes
     getRouteTree: _req =>
       makeRequest({
-        url: `${AM_CONFIG_URL}${tenantID}/route`,
+        url: `${AM_CONFIG_URL}/${tenantID}/route`,
         method: 'GET',
       }),
     editRouteTree: req =>
