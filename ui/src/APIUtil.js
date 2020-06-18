@@ -121,6 +121,16 @@ export function APIUtil(tenantID: string): ApiUtil {
       makeRequest({
         url: `${AM_CONFIG_URL}/tenants`,
         method: 'GET',
+      }),
+    getAlertmanagerTenancy: _req =>
+      makeRequest({
+        url: `${AM_CONFIG_URL}/tenancy`,
+        method: 'GET',
+      }),
+    getPrometheusTenancy: _req =>
+      makeRequest({
+        url: `${PROM_CONFIG_URL}/tenancy`,
+        method: 'GET',
       })
     }
 };
