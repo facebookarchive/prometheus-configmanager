@@ -46,6 +46,20 @@ function AlarmsMain() {
 
   const apiUtil = React.useMemo(() => APIUtil(tenantID),[tenantID])
 
+  // Initialize tenant if not already initialized
+  const {error} = apiUtil.useAlarmsApi(apiUtil.getRouteTree, {tenantID})
+  React.useEffect(() => {
+    if (error?.response?.status === 400 &&
+        error?.response?.data?.message?.includes('does not exist')) {
+      APIUtil(tenantID).editRouteTree({
+        route: {
+          receiver: `${tenantID}_tenant_base_route`,
+        }
+      })
+    }
+  }, [error, tenantID])
+
+
   const {response: amTenancyResp} = apiUtil.useAlarmsApi(apiUtil.getAlertmanagerTenancy, {})
   const {response: promTenancyResp} = apiUtil.useAlarmsApi(apiUtil.getPrometheusTenancy, {})
 
