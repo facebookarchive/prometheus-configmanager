@@ -15,6 +15,8 @@ import {MuiThemeProvider} from '@material-ui/core/styles';
 import {SnackbarProvider} from 'notistack';
 import {useState} from 'react';
 
+import type {TenancyConfig} from '@fbcnms/alarms/components/AlarmAPIType';
+
 // default theme
 const theme = createMuiTheme({
   palette: {
@@ -46,6 +48,9 @@ function AlarmsMain() {
 
   const apiUtil = React.useMemo(() => APIUtil(tenantID),[tenantID])
 
+  const {response} = apiUtil.useAlarmsApi(apiUtil.getAlertmanagerTenancy, {})
+  const tenancy: TenancyConfig = response ?? {restrictor_label: "", restrict_queries: false};
+
   return(
     <>
       <MuiThemeProvider theme={theme}>
@@ -57,7 +62,9 @@ function AlarmsMain() {
               vertical: 'bottom',
               horizontal: 'right',
           }}>
+          {tenancy?.restrictor_label !== "" &&
           <TenantSelector apiUtil={apiUtil} setTenantId={setTenantID} tenantID={tenantID}/>
+          }
           <Alarms
             apiUtil={apiUtil}
             makeTabLink={({match, keyName}) => {
