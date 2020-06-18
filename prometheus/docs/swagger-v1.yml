@@ -113,6 +113,16 @@ paths:
         default:
           $ref: '#/responses/UnexpectedError'
 
+  /tenancy:
+    get:
+      summary: Retrieve tenancy configuration of configurer service
+      responses:
+        '200':
+          description: Tenancy configuration
+          schema:
+            $ref: '#/definitions/tenancy_config':
+
+
 parameters:
   tenant_id:
     description: Tenant ID
@@ -163,6 +173,14 @@ definitions:
     type: object
     additionalProperties:
       type: string
+
+  tenancy_config:
+    type: object
+    properties:
+      restrictor_label:
+        type: string
+      restrict_queries:
+        type: boolean
 
   error:
     type: object

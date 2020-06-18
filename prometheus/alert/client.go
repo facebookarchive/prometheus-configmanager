@@ -39,8 +39,8 @@ type PrometheusAlertClient interface {
 }
 
 type TenancyConfig struct {
-	RestrictorLabel string
-	RestrictQueries bool
+	RestrictorLabel string `json:"restrictor_label"`
+	RestrictQueries bool   `json:"restrict_queries"`
 }
 
 type client struct {

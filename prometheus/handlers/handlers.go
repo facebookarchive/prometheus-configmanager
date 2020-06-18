@@ -30,10 +30,13 @@ const (
 
 	tenantIDParam = "tenant_id"
 
-	v1rootPath      = "/v1/:tenant_id"
+	v1rootPath       = "/v1"
+	v1TenantRootPath = v1rootPath + "/:tenant_id"
+
 	v1alertPath     = "/alert"
 	v1alertBulkPath = v1alertPath + "/bulk"
 	v1alertNamePath = v1alertPath + "/:" + ruleNameParam
+	v1TenancyPath   = "/tenancy"
 )
 
 func statusHandler(c echo.Context) error {
@@ -59,16 +62,20 @@ func RegisterV0Handlers(e *echo.Echo, alertClient alert.PrometheusAlertClient) {
 
 func RegisterV1Handlers(e *echo.Echo, alertClient alert.PrometheusAlertClient) {
 	v1 := e.Group(v1rootPath)
-	v1.Use(tenancyMiddlewareProvider(pathTenantProvider))
 
-	v1.POST(v1alertPath, GetConfigureAlertHandler(alertClient))
-	v1.GET(v1alertPath, GetRetrieveAlertHandler(alertClient))
+	v1.GET(v1TenancyPath, GetGetTenancyHandler(alertClient))
 
-	v1.DELETE(v1alertNamePath, GetDeleteAlertHandler(alertClient, pathAlertNameProvider))
-	v1.PUT(v1alertNamePath, GetUpdateAlertHandler(alertClient))
-	v1.GET(v1alertNamePath, GetRetrieveAlertHandler(alertClient))
+	v1Tenant := e.Group(v1TenantRootPath)
+	v1Tenant.Use(tenancyMiddlewareProvider(pathTenantProvider))
 
-	v1.POST(v1alertBulkPath, GetBulkAlertUpdateHandler(alertClient))
+	v1Tenant.POST(v1alertPath, GetConfigureAlertHandler(alertClient))
+	v1Tenant.GET(v1alertPath, GetRetrieveAlertHandler(alertClient))
+
+	v1Tenant.DELETE(v1alertNamePath, GetDeleteAlertHandler(alertClient, pathAlertNameProvider))
+	v1Tenant.PUT(v1alertNamePath, GetUpdateAlertHandler(alertClient))
+	v1Tenant.GET(v1alertNamePath, GetRetrieveAlertHandler(alertClient))
+
+	v1Tenant.POST(v1alertBulkPath, GetBulkAlertUpdateHandler(alertClient))
 }
 
 // Returns middleware func to check for tenant_id
@@ -232,6 +239,12 @@ func GetBulkAlertUpdateHandler(client alert.PrometheusAlertClient) func(c echo.C
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 		return c.JSON(http.StatusOK, results)
+	}
+}
+
+func GetGetTenancyHandler(client alert.PrometheusAlertClient) func(c echo.Context) error {
+	return func(c echo.Context) error {
+		return c.JSON(http.StatusOK, client.Tenancy())
 	}
 }
 

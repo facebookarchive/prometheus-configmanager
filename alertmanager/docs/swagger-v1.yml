@@ -139,6 +139,15 @@ paths:
         default:
           $ref: '#/responses/UnexpectedError'
 
+  /tenancy:
+    get:
+      summary: Retrieve tenancy configuration of configurer service
+      responses:
+        '200':
+          description: Tenancy configuration
+          schema:
+            $ref: '#/definitions/tenancy_config'
+
   /global:
     get:
       summary: Retrieve alertmanager global config
@@ -544,6 +553,13 @@ definitions:
       insecure_skip_verify:
         type: boolean
 
+  tenancy_config:
+    type: object
+    properties:
+      restrictor_label:
+        type: string
+      restrict_queries:
+        type: boolean
 
   error:
     type: object

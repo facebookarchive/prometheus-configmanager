@@ -354,6 +354,17 @@ func TestGetUpdateGlobalConfigHandler(t *testing.T) {
 	client.AssertExpectations(t)
 }
 
+func TestGetGetTenancyHandler(t *testing.T) {
+	client := &mocks.AlertmanagerClient{}
+	client.On("Tenancy").Return(&alert.TenancyConfig{RestrictorLabel: "", RestrictQueries: false})
+
+	c, rec := buildContext(nil, http.MethodGet, "/", v1TenancyPath, testNID)
+
+	err := GetGetTenancyHandler(client)(c)
+	assert.Equal(t, http.StatusOK, rec.Code)
+	assert.NoError(t, err)
+}
+
 func TestDecodeReceiverPostRequest(t *testing.T) {
 	// Successful Decode
 	c, _ := buildContext(sampleReceiver, http.MethodPost, "/", v1receiverPath, testNID)

@@ -34,6 +34,7 @@ const (
 	v1routePath        = "/route"
 	v1GlobalPath       = "/global"
 	v1TenantPath       = "/tenants"
+	v1TenancyPath      = "/tenancy"
 
 	receiverNameParam = "receiver_name"
 	tenantIDParam     = "tenant_id"
@@ -62,6 +63,7 @@ func RegisterV1Handlers(e *echo.Echo, client client.AlertmanagerClient) {
 
 	// these don't require tenancy so register before middleware
 	v1.GET(v1TenantPath, GetGetTenantsHandler(client))
+	v1.GET(v1TenancyPath, GetGetTenancyHandler(client))
 
 	// TODO: Remove the tenant param from these paths
 	v1Tenant.POST(v1GlobalPath, GetUpdateGlobalConfigHandler(client))
@@ -168,6 +170,12 @@ func GetGetTenantsHandler(client client.AlertmanagerClient) func(c echo.Context)
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 		return c.JSON(http.StatusOK, tenants)
+	}
+}
+
+func GetGetTenancyHandler(client client.AlertmanagerClient) func(c echo.Context) error {
+	return func(c echo.Context) error {
+		return c.JSON(http.StatusOK, client.Tenancy())
 	}
 }
 
