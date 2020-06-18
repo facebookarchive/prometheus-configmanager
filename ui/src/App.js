@@ -15,7 +15,7 @@ import {MuiThemeProvider} from '@material-ui/core/styles';
 import {SnackbarProvider} from 'notistack';
 import {useState} from 'react';
 
-import type {TenancyConfig} from '@fbcnms/alarms/components/AlarmAPIType';
+import type {Labels, TenancyConfig} from '@fbcnms/alarms/components/AlarmAPIType';
 
 // default theme
 const theme = createMuiTheme({
@@ -41,15 +41,28 @@ const theme = createMuiTheme({
 });
 
 
-
-
 function AlarmsMain() {
   const [tenantID, setTenantID] = useState<string>("default");
 
   const apiUtil = React.useMemo(() => APIUtil(tenantID),[tenantID])
 
-  const {response} = apiUtil.useAlarmsApi(apiUtil.getAlertmanagerTenancy, {})
-  const tenancy: TenancyConfig = response ?? {restrictor_label: "", restrict_queries: false};
+  const {response: amTenancyResp} = apiUtil.useAlarmsApi(apiUtil.getAlertmanagerTenancy, {})
+  const {response: promTenancyResp} = apiUtil.useAlarmsApi(apiUtil.getPrometheusTenancy, {})
+
+  const amTenancy: TenancyConfig = amTenancyResp ?? {restrictor_label: "", restrict_queries: false};
+  const promTenancy: TenancyConfig = promTenancyResp ?? {restrictor_label: "tenant", restrict_queries: false};
+
+  const isSingleTenant = amTenancy.restrictor_label === "";
+
+  const filterLabels = (labels: Labels): Labels => {
+    const labelsToFilter = ['monitor', 'instance', 'job'];
+    isSingleTenant && labelsToFilter.push(promTenancy.restrictor_label);
+    const filtered = {...labels};
+    for (const label of labelsToFilter) {
+      delete filtered[label];
+    }
+    return filtered;
+  }
 
   return(
     <>
@@ -62,7 +75,7 @@ function AlarmsMain() {
               vertical: 'bottom',
               horizontal: 'right',
           }}>
-          {tenancy?.restrictor_label !== "" &&
+          {isSingleTenant ||
           <TenantSelector apiUtil={apiUtil} setTenantId={setTenantID} tenantID={tenantID}/>
           }
           <Alarms
@@ -74,6 +87,7 @@ function AlarmsMain() {
             alertManagerGlobalConfigEnabled={true}
             disabledTabs={['suppressions', 'routes']}
             thresholdEditorEnabled={true}
+            filterLabels={filterLabels}
           />
           </SnackbarProvider>
         </MuiStylesThemeProvider>
@@ -81,6 +95,7 @@ function AlarmsMain() {
     </>
   )
 }
+
 
 function App() {
   return (
