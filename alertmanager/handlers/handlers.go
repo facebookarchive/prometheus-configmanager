@@ -59,16 +59,15 @@ func RegisterV0Handlers(e *echo.Echo, client client.AlertmanagerClient) {
 
 func RegisterV1Handlers(e *echo.Echo, client client.AlertmanagerClient) {
 	v1 := e.Group(v1rootPath)
-	v1Tenant := e.Group(v1TenantRootPath)
 
 	// these don't require tenancy so register before middleware
 	v1.GET(v1TenantPath, GetGetTenantsHandler(client))
 	v1.GET(v1TenancyPath, GetGetTenancyHandler(client))
 
-	// TODO: Remove the tenant param from these paths
-	v1Tenant.POST(v1GlobalPath, GetUpdateGlobalConfigHandler(client))
-	v1Tenant.GET(v1GlobalPath, GetGetGlobalConfigHandler(client))
+	v1.POST(v1GlobalPath, GetUpdateGlobalConfigHandler(client))
+	v1.GET(v1GlobalPath, GetGetGlobalConfigHandler(client))
 
+	v1Tenant := e.Group(v1TenantRootPath)
 	v1Tenant.Use(tenancyMiddlewareProvider(client, pathTenantProvider))
 
 	v1Tenant.POST(v1receiverPath, GetReceiverPostHandler(client))

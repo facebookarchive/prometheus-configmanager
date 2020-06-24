@@ -49,5 +49,4 @@ func main() {
 
 	glog.Infof("Alertmanager Config server listening on port: %s\n", *port)
 	e.Logger.Fatal(e.Start(fmt.Sprintf(":%s", *port)))
-
 }
