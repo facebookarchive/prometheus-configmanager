@@ -175,11 +175,80 @@ paths:
         default:
           $ref: '#/responses/UnexpectedError'
 
+  /{tmpl_file_name}/template:
+    get:
+      summary: Retrieve all template strings for a tenant
+      tags:
+        - Templates
+      parameters:
+        - $ref: '#/parameters/tmpl_file_name'
+      responses:
+        '200':
+          description: Map of template name to template text
+          schema:
+            type: object
+            additionalProperties:
+              type: string
+        default:
+          $ref: '#/responses/UnexpectedError'
+    post:
+      summary: Initialize a template file
+      tags:
+        - Templates
+      parameters:
+        - $ref: '#/parameters/tmpl_file_name'
+        - in: body
+          name: template
+          description: Template file text
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+        default:
+          $ref: '#/responses/UnexpectedError'
+    put:
+      summary: Edit a template file
+      tags:
+        - Templates
+      parameters:
+        - $ref: '#/parameters/tmpl_file_name'
+        - in: body
+          name: template
+          description: Template file text
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+        default:
+          $ref: '#/responses/UnexpectedError'
+    delete:
+      summary: Delete a template file
+      tags:
+        - Templates
+      parameters:
+        - $ref: '#/parameters/tmpl_file_name'
+      responses:
+        '200':
+          description: OK
+        default:
+          $ref: '#/responses/UnexpectedError'
+
 parameters:
   tenant_id:
     description: Tenant ID
     in: path
     name: tenant_id
+    required: true
+    type: string
+
+  tmpl_file_name:
+    description: Template File Name
+    in: path
+    name: tmpl_file_name
     required: true
     type: string
 

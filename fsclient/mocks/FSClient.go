@@ -20,6 +20,20 @@ type FSClient struct {
 	mock.Mock
 }
 
+// DeleteFile provides a mock function with given fields: filename
+func (_m *FSClient) DeleteFile(filename string) error {
+	ret := _m.Called(filename)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
+		r0 = rf(filename)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // ReadFile provides a mock function with given fields: filename
 func (_m *FSClient) ReadFile(filename string) ([]byte, error) {
 	ret := _m.Called(filename)
