@@ -1,0 +1,58 @@
+{{/*
+Copyright (c) Facebook, Inc. and its affiliates.
+
+This source code is licensed under the MIT license found in the
+LICENSE file in the root directory of this source tree.
+*/}}
+{{- if .Values.alertsUI.create }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alerts-ui
+  labels:
+    app.kubernetes.io/component: alerts-ui
+spec:
+  replicas: {{ .Values.alertsUI.replicas }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: alerts-ui
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: alerts-ui
+    spec:
+      {{- with .Values.alertsUI.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .Values.alertsUI.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .Values.alertsUI.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+{{ toYaml . | trimSuffix "\n" | indent 8 }}
+      {{- end }}
+
+      containers:
+        - name: "alerts-ui"
+          image: {{ required "alertsUI.image.repository must be provided" .Values.alertsUI.image.repository }}:{{ .Values.alertsUI.image.tag }}
+          imagePullPolicy: {{ .Values.alertsUI.image.pullPolicy }}
+          ports:
+            - containerPort: 3000
+          env:
+            - name: "REACT_APP_AM_BASE_URL"
+              value: {{ .Values.alertsUI.alertmanager_address}}/api/v2
+            - name: "REACT_APP_PROM_BASE_URL"
+              value: {{ .Values.alertsUI.prometheus_address}}/api/v1
+            - name: "REACT_APP_AM_CONFIG_URL"
+              value: alertmanager-configurer:{{ .Values.alertmanagerConfigurer.port }}/v1
+            - name: "REACT_APP_PROM_CONFIG_URL"
+              value: prometheus-configrer:{{ .Values.prometheusConfigurer.port }}/v1
+          resources:
+{{ toYaml .Values.alertsUI.resources | indent 12 }}
+{{- end }}

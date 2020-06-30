@@ -4,7 +4,7 @@
 
 name: prometheus-configmanager
 apiVersion: v1
-version: 0.1.0
+version: 0.1.1
 description: Prometheus configmanager which provides an API to update prometheus and alertmanager configurations during runtime.
 keywords:
   - prometheus
