@@ -63,6 +63,61 @@ docker build -t prometheus-configurer -f  Dockerfile.prometheus .
 docker build -t alertmanager-configurer -f  Dockerfile.alertmanager .
 ```
 
+## Deploying on Minikube
+
+On your local machine start Minikube. Your exact command may be different due to different VM providers.
+```
+minikube start --mount --mount-string "/Users/smithscott/fbsource/fbcode/fbc/prometheus-configmanager:/prometheus-configmanager"
+```
+
+SSH into the minikube vm with
+```
+minikube ssh
+```
+From minikube build all the docker containers:
+```
+$ cd /prometheus-configmanager
+$ docker build -f Dockerfile.alertmanager -t alertmanager-configurer .
+$ docker build -f Dockerfile.promtheus -t prom-configurer .
+$ cd ui
+$ docker build -t alerts-ui .
+```
+Back on your host machine:
+```
+$ cd <path-to-prometheus-configmanager-repo>
+$ helm init
+$ helm install --name prometheus-configmanager .
+```
+You can then check the status of the deployment with
+```
+$ helm status prometheus-configmanager
+```
+And you should see something like this:
+```
+LAST DEPLOYED: Mon Jun 29 14:02:43 2020
+NAMESPACE: default
+STATUS: DEPLOYED
+
+RESOURCES:
+==> v1/Deployment
+NAME                     AGE
+alertmanager-configurer  34m
+alerts-ui                34m
+prometheus-configurer    34m
+
+==> v1/Pod(related)
+NAME                                      AGE
+alertmanager-configurer-5b57b9b5d5-hns7d  34m
+alerts-ui-85566df78c-7wcl2                34m
+prometheus-configurer-575567dd95-x4mnj    34m
+
+==> v1/Service
+NAME                     AGE
+alertmanager-configurer  34m
+alerts-ui                34m
+prometheus-configurer    34m
+```
+
 ## Third-Party Code Disclaimer
 Prometheus-Configmanager contains dependencies which are not maintained by the maintainers of this project. Please read the disclaimer at THIRD_PARTY_CODE_DISCLAIMER.md.
 
