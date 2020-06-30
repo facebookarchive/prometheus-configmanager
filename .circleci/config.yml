@@ -1,3 +1,7 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
+# This source code is licensed under the MIT license found in the
+# LICENSE file in the root directory of this source tree.
+
 version: 2.1
 
 aliases:
@@ -100,10 +104,20 @@ jobs:
           chart: prometheus-configmanager
           working_directory: <<parameters.working_directory>>
 
+  copyright-lint:
+    executor: golangci
+    steps:
+      - checkout
+      - getmods
+      - run:
+          name: Copyright Check
+          command: go run github.com/google/addlicense --check -c Facebook -y 2004-present -l mit ./
+
 workflows:
   version: 2.1
   all:
     jobs:
       - lint
       - helm-lint
+      - copyright-lint
       - build
