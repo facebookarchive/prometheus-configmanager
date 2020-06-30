@@ -15,6 +15,20 @@ type AlertmanagerClient struct {
 	mock.Mock
 }
 
+// AddTemplateFile provides a mock function with given fields: path
+func (_m *AlertmanagerClient) AddTemplateFile(path string) error {
+	ret := _m.Called(path)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
+		r0 = rf(path)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // CreateReceiver provides a mock function with given fields: tenantID, rec
 func (_m *AlertmanagerClient) CreateReceiver(tenantID string, rec config.Receiver) error {
 	ret := _m.Called(tenantID, rec)
@@ -112,6 +126,29 @@ func (_m *AlertmanagerClient) GetRoute(tenantID string) (*config.Route, error) {
 	return r0, r1
 }
 
+// GetTemplateFileList provides a mock function with given fields:
+func (_m *AlertmanagerClient) GetTemplateFileList() ([]string, error) {
+	ret := _m.Called()
+
+	var r0 []string
+	if rf, ok := ret.Get(0).(func() []string); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetTenants provides a mock function with given fields:
 func (_m *AlertmanagerClient) GetTenants() ([]string, error) {
 	ret := _m.Called()
@@ -156,6 +193,20 @@ func (_m *AlertmanagerClient) ReloadAlertmanager() error {
 	var r0 error
 	if rf, ok := ret.Get(0).(func() error); ok {
 		r0 = rf()
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// RemoveTemplateFile provides a mock function with given fields: path
+func (_m *AlertmanagerClient) RemoveTemplateFile(path string) error {
+	ret := _m.Called(path)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
+		r0 = rf(path)
 	} else {
 		r0 = ret.Error(0)
 	}

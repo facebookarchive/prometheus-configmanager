@@ -43,6 +43,10 @@ type AlertmanagerClient interface {
 	GetGlobalConfig() (*config.GlobalConfig, error)
 	SetGlobalConfig(globalConfig config.GlobalConfig) error
 
+	GetTemplateFileList() ([]string, error)
+	AddTemplateFile(path string) error
+	RemoveTemplateFile(path string) error
+
 	// ReloadAlertmanager triggers the alertmanager process to reload the
 	// configuration file(s)
 	ReloadAlertmanager() error
@@ -246,6 +250,62 @@ func (c *client) GetTenants() ([]string, error) {
 		}
 	}
 	return tenants, nil
+}
+
+func (c *client) GetTemplateFileList() ([]string, error) {
+	c.RLock()
+	defer c.RUnlock()
+	conf, err := c.readConfigFile()
+	if err != nil {
+		return []string{}, err
+	}
+
+	templateFiles := make([]string, 0)
+	for _, tmpl := range conf.Templates {
+		templateFiles = append(templateFiles, tmpl)
+	}
+	return templateFiles, nil
+}
+
+func (c *client) AddTemplateFile(path string) error {
+	c.Lock()
+	defer c.Unlock()
+	conf, err := c.readConfigFile()
+	if err != nil {
+		return err
+	}
+
+	templateFiles := make([]string, 0)
+	for _, tmpl := range conf.Templates {
+		templateFiles = append(templateFiles, tmpl)
+	}
+	conf.Templates = append(conf.Templates, path)
+
+	return c.writeConfigFile(conf)
+}
+
+func (c *client) RemoveTemplateFile(path string) error {
+	c.Lock()
+	defer c.Unlock()
+	conf, err := c.readConfigFile()
+	if err != nil {
+		return err
+	}
+
+	tmplIdx := -1
+	for idx, tmpl := range conf.Templates {
+		if tmpl == path {
+			tmplIdx = idx
+			break
+		}
+	}
+	if tmplIdx == -1 {
+		return fmt.Errorf("path not found: %s", path)
+	}
+	// Remove element from template list
+	conf.Templates = append(conf.Templates[:tmplIdx], conf.Templates[tmplIdx+1:]...)
+
+	return c.writeConfigFile(conf)
 }
 
 func (c *client) ReloadAlertmanager() error {

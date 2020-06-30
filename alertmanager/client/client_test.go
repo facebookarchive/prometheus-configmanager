@@ -8,6 +8,7 @@
 package client
 
 import (
+	"gopkg.in/yaml.v2"
 	"regexp"
 	"testing"
 
@@ -72,11 +73,15 @@ receivers:
     headers:
       name: value
       foo: bar
-templates: []`
+templates:
+- "path/to/file1"
+- "path/to/file2"
+- "path/to/file3"
+`
 )
 
 func TestClient_CreateReceiver(t *testing.T) {
-	client, fsClient := newTestClient()
+	client, fsClient, _ := newTestClient()
 	// Create Slack Receiver
 	err := client.CreateReceiver(testNID, tc.SampleSlackReceiver)
 	assert.NoError(t, err)
@@ -98,7 +103,7 @@ func TestClient_CreateReceiver(t *testing.T) {
 }
 
 func TestClient_GetReceivers(t *testing.T) {
-	client, _ := newTestClient()
+	client, _, _ := newTestClient()
 	recs, err := client.GetReceivers(testNID)
 	assert.NoError(t, err)
 	assert.Equal(t, 4, len(recs))
@@ -117,7 +122,7 @@ func TestClient_GetReceivers(t *testing.T) {
 }
 
 func TestClient_UpdateReceiver(t *testing.T) {
-	client, fsClient := newTestClient()
+	client, fsClient, _ := newTestClient()
 	err := client.UpdateReceiver(testNID, "slack", &config.Receiver{Name: "slack"})
 	fsClient.AssertCalled(t, "WriteFile", "test/alertmanager.yml", mock.Anything, mock.Anything)
 	assert.NoError(t, err)
@@ -128,7 +133,7 @@ func TestClient_UpdateReceiver(t *testing.T) {
 }
 
 func TestClient_DeleteReceiver(t *testing.T) {
-	client, fsClient := newTestClient()
+	client, fsClient, _ := newTestClient()
 	err := client.DeleteReceiver(testNID, "slack")
 	fsClient.AssertCalled(t, "WriteFile", "test/alertmanager.yml", mock.Anything, mock.Anything)
 	assert.NoError(t, err)
@@ -139,7 +144,7 @@ func TestClient_DeleteReceiver(t *testing.T) {
 }
 
 func TestClient_ModifyTenantRoute(t *testing.T) {
-	client, fsClient := newTestClient()
+	client, fsClient, _ := newTestClient()
 	err := client.ModifyTenantRoute(testNID, &config.Route{
 		Receiver: "test_tenant_base_route",
 		Routes: []*config.Route{
@@ -168,7 +173,7 @@ func TestClient_ModifyTenantRoute(t *testing.T) {
 }
 
 func TestClient_GetRoute(t *testing.T) {
-	client, _ := newTestClient()
+	client, _, _ := newTestClient()
 
 	route, err := client.GetRoute(otherNID)
 	assert.NoError(t, err)
@@ -179,19 +184,65 @@ func TestClient_GetRoute(t *testing.T) {
 }
 
 func TestClient_GetTenants(t *testing.T) {
-	client, _ := newTestClient()
+	client, _, _ := newTestClient()
 
 	tenants, err := client.GetTenants()
 	assert.NoError(t, err)
 	assert.Equal(t, []string{"other", "sample"}, tenants)
 }
 
-func newTestClient() (AlertmanagerClient, *mocks.FSClient) {
+func TestClient_GetTemplateFileList(t *testing.T) {
+	client, _, _ := newTestClient()
+
+	tmpls, err := client.GetTemplateFileList()
+	assert.NoError(t, err)
+	assert.Equal(t, []string{"path/to/file1", "path/to/file2", "path/to/file3"}, tmpls)
+}
+
+func TestClient_AddTemplateFile(t *testing.T) {
+	client, _, out := newTestClient()
+	newPathName := "path/to/newFile"
+
+	err := client.AddTemplateFile(newPathName)
+	assert.NoError(t, err)
+
+	newConf, _ := byteToConfig(*out)
+	assert.Equal(t, len(newConf.Templates), 4)
+	assert.Equal(t, newPathName, newConf.Templates[3])
+}
+
+func TestClient_RemoveTemplateFile(t *testing.T) {
+	client, fsClient, out := newTestClient()
+
+	// Remove existing path
+	err := client.RemoveTemplateFile("path/to/file1")
+	assert.NoError(t, err)
+
+	newConf, _ := byteToConfig(*out)
+	assert.Equal(t, len(newConf.Templates), 2)
+	fsClient.AssertNumberOfCalls(t, "WriteFile", 1)
+
+	// Remove non-existent path
+	err = client.RemoveTemplateFile("path/to/noFile")
+	assert.EqualError(t, err, "path not found: path/to/noFile")
+	fsClient.AssertNumberOfCalls(t, "WriteFile", 1)
+}
+
+func newTestClient() (AlertmanagerClient, *mocks.FSClient, *[]byte) {
 	fsClient := &mocks.FSClient{}
 	fsClient.On("ReadFile", mock.Anything).Return([]byte(testAlertmanagerFile), nil)
-	fsClient.On("WriteFile", mock.Anything, mock.Anything, mock.Anything).Return(nil)
+
+	var outputFile []byte
+	fsClient.On("WriteFile", mock.Anything, mock.Anything, mock.Anything).
+		Return(nil).
+		Run(func(args mock.Arguments) { outputFile = args[1].([]byte) })
 	tenancy := &alert.TenancyConfig{
 		RestrictorLabel: "tenantID",
 	}
-	return NewClient("test/alertmanager.yml", "alertmanager-host:9093", tenancy, fsClient), fsClient
+	return NewClient("test/alertmanager.yml", "alertmanager-host:9093", tenancy, fsClient), fsClient, &outputFile
+}
+
+func byteToConfig(in []byte) (config.Config, error) {
+	conf := config.Config{}
+	return conf, yaml.Unmarshal(in, &conf)
 }
