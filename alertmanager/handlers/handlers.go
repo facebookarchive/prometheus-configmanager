@@ -40,10 +40,13 @@ const (
 	tenantIDParam     = "tenant_id"
 
 	// Templates
-	v1TemplateRoot = v1rootPath + "/:tmpl_file_name"
-	v1TemplatePath = "/template"
+	v1TemplateRoot     = v1rootPath + "/:tmpl_file_name"
+	v1TemplatePath     = "/template"
+	v1TemplatesPath    = "/templates"
+	v1TemplateSpecPath = v1TemplatePath + "/:tmpl_name"
 
 	templateFilenameParam = "tmpl_file_name"
+	templateNameParam     = "tmpl_name"
 )
 
 func RegisterBaseHandlers(e *echo.Echo) {
@@ -65,7 +68,6 @@ func RegisterV0Handlers(e *echo.Echo, client client.AlertmanagerClient) {
 
 func RegisterV1Handlers(e *echo.Echo, client client.AlertmanagerClient, tmplClient client.TemplateClient) {
 	v1 := e.Group(v1rootPath)
-	v1Tenant := e.Group(v1TenantRootPath)
 	v1Template := e.Group(v1TemplateRoot)
 
 	// these don't require tenancy so register before middleware
@@ -88,12 +90,20 @@ func RegisterV1Handlers(e *echo.Echo, client client.AlertmanagerClient, tmplClie
 	v1Tenant.POST(v1routePath, GetUpdateRouteHandler(client))
 	v1Tenant.GET(v1routePath, GetGetRouteHandler(client))
 
-	v1Template.Use(templateFileMiddlewareProvider())
+	v1Template.Use(stringParamProvider(templateFilenameParam))
 
 	v1Template.GET(v1TemplatePath, GetGetTemplateFileHandler(client, tmplClient))
 	v1Template.POST(v1TemplatePath, GetPostTemplateFileHandler(client, tmplClient))
 	v1Template.PUT(v1TemplatePath, GetPutTemplateFileHandler(client, tmplClient))
 	v1Template.DELETE(v1TemplatePath, GetDeleteTemplateFileHandler(client, tmplClient))
+
+	v1Template.Use(stringParamProvider(templateNameParam))
+
+	v1Template.GET(v1TemplatesPath, GetGetTemplatesHandler(client, tmplClient))
+	v1Template.GET(v1TemplateSpecPath, GetGetTemplateHandler(client, tmplClient))
+	v1Template.POST(v1TemplateSpecPath, GetPostTemplateHandler(client, tmplClient))
+	v1Template.PUT(v1TemplateSpecPath, GetPutTemplateHandler(client, tmplClient))
+	v1Template.DELETE(v1TemplateSpecPath, GetDeleteTemplateHandler(client, tmplClient))
 
 }
 

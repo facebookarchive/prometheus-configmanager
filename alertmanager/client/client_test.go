@@ -8,9 +8,10 @@
 package client
 
 import (
-	"gopkg.in/yaml.v2"
 	"regexp"
 	"testing"
+
+	"gopkg.in/yaml.v2"
 
 	"prometheus-configmanager/alertmanager/config"
 	tc "prometheus-configmanager/alertmanager/test_common"

@@ -12,5 +12,7 @@ require (
 	github.com/prometheus/prometheus v0.0.0-20190607092147-e23fa22233cf
 	github.com/prometheus/tsdb v0.10.0 // indirect
 	github.com/stretchr/testify v1.5.1
+	github.com/thoas/go-funk v0.7.0
+	golang.org/x/tools v0.0.0-20190813034749-528a2984e271
 	gopkg.in/yaml.v2 v2.2.8
 )

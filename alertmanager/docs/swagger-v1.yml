@@ -237,6 +237,88 @@ paths:
         default:
           $ref: '#/responses/UnexpectedError'
 
+  /{tmpl_file_name}/templates:
+    get:
+      summary: Retrieve map of available templates by name
+      tags:
+        - Templates
+      parameters:
+        - $ref: '#/parameters/tmpl_file_name'
+      responses:
+        '200':
+          description: Template map
+          schema:
+            type: object
+            additionalParmams:
+              type: string
+        default:
+          $ref: '#/responses/UnexpectedError'
+
+  /{tmpl_file_name}/template/{template_name}:
+    get:
+      summary: Retrieve a template string by name
+      tags:
+        - Templates
+      parameters:
+        - $ref: '#/parameters/tmpl_file_name'
+        - $ref: '#/parameters/template_name'
+      responses:
+        '200':
+          description: Template string
+          schema:
+            type: string
+        default:
+          $ref: '#/responses/UnexpectedError'
+    post:
+      summary: Create a template string in the given template file
+      tags:
+        - Templates
+      parameters:
+        - $ref: '#/parameters/tmpl_file_name'
+        - $ref: '#/parameters/template_name'
+        - in: body
+          name: template
+          description: Template file text
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+        default:
+          $ref: '#/responses/UnexpectedError'
+    put:
+      summary: Edit a template string in the given template file
+      tags:
+        - Templates
+      parameters:
+        - $ref: '#/parameters/tmpl_file_name'
+        - $ref: '#/parameters/template_name'
+        - in: body
+          name: template
+          description: Template file text
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+        default:
+          $ref: '#/responses/UnexpectedError'
+    delete:
+      summary: Delete a template string in the given template file
+      tags:
+        - Templates
+      parameters:
+        - $ref: '#/parameters/tmpl_file_name'
+        - $ref: '#/parameters/template_name'
+      responses:
+        '200':
+          description: OK
+        default:
+          $ref: '#/responses/UnexpectedError'
+
+
 parameters:
   tenant_id:
     description: Tenant ID
@@ -251,6 +333,14 @@ parameters:
     name: tmpl_file_name
     required: true
     type: string
+
+  template_name:
+    description: Template Name
+    in: path
+    name: template_name
+    required: true
+    type: string
+
 
 definitions:
   receiver_config:

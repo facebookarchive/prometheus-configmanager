@@ -110,14 +110,128 @@ func GetDeleteTemplateFileHandler(amClient client.AlertmanagerClient, tmplClient
 	}
 }
 
-func templateFileMiddlewareProvider() echo.MiddlewareFunc {
+func GetGetTemplatesHandler(amClient client.AlertmanagerClient, tmplClient client.TemplateClient) func(c echo.Context) error {
+	return func(c echo.Context) error {
+		filename := c.Get(templateFilenameParam).(string)
+
+		exists, err := fileExists(amClient, tmplClient, filename)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, err)
+		}
+		if !exists {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("error getting file: file %s does not exist", filename))
+		}
+
+		tmps, err := tmplClient.GetTemplates(filename)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("error getting templates: %s", err.Error()))
+		}
+		return c.JSON(http.StatusOK, tmps)
+	}
+}
+
+func GetGetTemplateHandler(amClient client.AlertmanagerClient, tmplClient client.TemplateClient) func(c echo.Context) error {
+	return func(c echo.Context) error {
+		filename := c.Get(templateFilenameParam).(string)
+		tmplName := c.Get(templateNameParam).(string)
+
+		exists, err := fileExists(amClient, tmplClient, filename)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, err)
+		}
+		if !exists {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("error getting template: file %s does not exist", filename))
+		}
+
+		tmpl, err := tmplClient.GetTemplate(filename, tmplName)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("error getting template: %s", err.Error()))
+		}
+		return c.JSON(http.StatusOK, tmpl)
+	}
+}
+
+func GetPostTemplateHandler(amClient client.AlertmanagerClient, tmplClient client.TemplateClient) func(c echo.Context) error {
+	return func(c echo.Context) error {
+		filename := c.Get(templateFilenameParam).(string)
+		tmplName := c.Get(templateNameParam).(string)
+
+		tmplText, err := readStringBody(c)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		}
+
+		exists, err := fileExists(amClient, tmplClient, filename)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, err)
+		}
+		if !exists {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("error getting template: file %s does not exist", filename))
+		}
+
+		err = tmplClient.AddTemplate(filename, tmplName, tmplText)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("error adding template: %s", err.Error()))
+		}
+		return c.NoContent(http.StatusOK)
+	}
+}
+
+func GetPutTemplateHandler(amClient client.AlertmanagerClient, tmplClient client.TemplateClient) func(c echo.Context) error {
+	return func(c echo.Context) error {
+		filename := c.Get(templateFilenameParam).(string)
+		tmplName := c.Get(templateNameParam).(string)
+
+		tmplText, err := readStringBody(c)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		}
+
+		exists, err := fileExists(amClient, tmplClient, filename)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, err)
+		}
+		if !exists {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("error getting template: file %s does not exist", filename))
+		}
+
+		err = tmplClient.EditTemplate(filename, tmplName, tmplText)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("error editing template: %s", err.Error()))
+		}
+		return c.NoContent(http.StatusOK)
+	}
+}
+
+func GetDeleteTemplateHandler(amClient client.AlertmanagerClient, tmplClient client.TemplateClient) func(c echo.Context) error {
+	return func(c echo.Context) error {
+		filename := c.Get(templateFilenameParam).(string)
+		tmplName := c.Get(templateNameParam).(string)
+
+		exists, err := fileExists(amClient, tmplClient, filename)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, err)
+		}
+		if !exists {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("error getting template: file %s does not exist", filename))
+		}
+
+		err = tmplClient.DeleteTemplate(filename, tmplName)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("error deleting template: %s", err.Error()))
+		}
+		return c.NoContent(http.StatusOK)
+	}
+}
+
+func stringParamProvider(paramName string) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			templateFileName := c.Param(templateFilenameParam)
-			if templateFileName == "" {
-				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Must provide %s parameter", templateFilenameParam))
+			requestedParam := c.Param(paramName)
+			if requestedParam == "" {
+				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Must provide %s parameter", paramName))
 			}
-			c.Set(templateFilenameParam, templateFileName)
+			c.Set(paramName, requestedParam)
 			return next(c)
 		}
 	}

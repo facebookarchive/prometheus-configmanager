@@ -9,6 +9,20 @@ type TemplateClient struct {
 	mock.Mock
 }
 
+// AddTemplate provides a mock function with given fields: filename, tmplName, tmplText
+func (_m *TemplateClient) AddTemplate(filename string, tmplName string, tmplText string) error {
+	ret := _m.Called(filename, tmplName, tmplText)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string, string) error); ok {
+		r0 = rf(filename, tmplName, tmplText)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // CreateTemplateFile provides a mock function with given fields: filename, fileText
 func (_m *TemplateClient) CreateTemplateFile(filename string, fileText string) error {
 	ret := _m.Called(filename, fileText)
@@ -16,6 +30,20 @@ func (_m *TemplateClient) CreateTemplateFile(filename string, fileText string) e
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, string) error); ok {
 		r0 = rf(filename, fileText)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DeleteTemplate provides a mock function with given fields: filename, tmplName
+func (_m *TemplateClient) DeleteTemplate(filename string, tmplName string) error {
+	ret := _m.Called(filename, tmplName)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string) error); ok {
+		r0 = rf(filename, tmplName)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -37,6 +65,20 @@ func (_m *TemplateClient) DeleteTemplateFile(filename string) error {
 	return r0
 }
 
+// EditTemplate provides a mock function with given fields: filename, tmplName, tmplText
+func (_m *TemplateClient) EditTemplate(filename string, tmplName string, tmplText string) error {
+	ret := _m.Called(filename, tmplName, tmplText)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string, string) error); ok {
+		r0 = rf(filename, tmplName, tmplText)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // EditTemplateFile provides a mock function with given fields: filename, fileText
 func (_m *TemplateClient) EditTemplateFile(filename string, fileText string) error {
 	ret := _m.Called(filename, fileText)
@@ -51,6 +93,27 @@ func (_m *TemplateClient) EditTemplateFile(filename string, fileText string) err
 	return r0
 }
 
+// GetTemplate provides a mock function with given fields: filename, tmplName
+func (_m *TemplateClient) GetTemplate(filename string, tmplName string) (string, error) {
+	ret := _m.Called(filename, tmplName)
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func(string, string) string); ok {
+		r0 = rf(filename, tmplName)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(filename, tmplName)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetTemplateFile provides a mock function with given fields: filename
 func (_m *TemplateClient) GetTemplateFile(filename string) (string, error) {
 	ret := _m.Called(filename)
@@ -60,6 +123,29 @@ func (_m *TemplateClient) GetTemplateFile(filename string) (string, error) {
 		r0 = rf(filename)
 	} else {
 		r0 = ret.Get(0).(string)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(filename)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetTemplates provides a mock function with given fields: filename
+func (_m *TemplateClient) GetTemplates(filename string) (map[string]string, error) {
+	ret := _m.Called(filename)
+
+	var r0 map[string]string
+	if rf, ok := ret.Get(0).(func(string) map[string]string); ok {
+		r0 = rf(filename)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string]string)
+		}
 	}
 
 	var r1 error
