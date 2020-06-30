@@ -169,12 +169,13 @@ func newTestClient(multitenantLabel string) alert.PrometheusAlertClient {
 	fileLocks, _ := alert.NewFileLocker(dClient)
 	fsClient := &mocks.FSClient{}
 	fsClient.On("Stat", mock.AnythingOfType("string")).Return(nil, nil)
-	fsClient.On("ReadFile", "test_rules/test_rules.yml").Return([]byte(testRuleFile), nil)
-	fsClient.On("ReadFile", "test_rules/other_rules.yml").Return([]byte(otherRuleFile), nil)
+	fsClient.On("ReadFile", "test_rules.yml").Return([]byte(testRuleFile), nil)
+	fsClient.On("ReadFile", "other_rules.yml").Return([]byte(otherRuleFile), nil)
 	fsClient.On("WriteFile", mock.Anything, mock.Anything, mock.Anything).Return(nil)
+	fsClient.On("Root").Return("test_rules/")
 	tenancy := alert.TenancyConfig{
 		RestrictorLabel: multitenantLabel,
 		RestrictQueries: true,
 	}
-	return alert.NewClient(fileLocks, "test_rules", "prometheus-host.com", fsClient, tenancy)
+	return alert.NewClient(fileLocks, "prometheus-host.com", fsClient, tenancy)
 }

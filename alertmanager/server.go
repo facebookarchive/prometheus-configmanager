@@ -41,7 +41,7 @@ func main() {
 	e := echo.New()
 	e.Use(middleware.CORS())
 
-	receiverClient := client.NewClient(*alertmanagerConfPath, *alertmanagerURL, tenancy, fsclient.NewFSClient())
+	receiverClient := client.NewClient(*alertmanagerConfPath, *alertmanagerURL, tenancy, fsclient.NewFSClient("/"))
 
 	handlers.RegisterBaseHandlers(e)
 	handlers.RegisterV0Handlers(e, receiverClient)

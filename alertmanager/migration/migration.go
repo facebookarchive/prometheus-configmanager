@@ -28,7 +28,7 @@ func main() {
 	alertmanagerConfPath := flag.String("alertmanager-conf", defaultAlertmanagerConfigPath, fmt.Sprintf("Path to alertmanager configuration file. Default is %s", defaultAlertmanagerConfigPath))
 	flag.Parse()
 
-	fsClient := fsclient.NewFSClient()
+	fsClient := fsclient.NewFSClient("/")
 
 	// Read config file
 	configFile := config.Config{}

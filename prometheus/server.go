@@ -54,7 +54,7 @@ func main() {
 		RestrictQueries: *restrictQueries,
 		RestrictorLabel: *multitenancyLabel,
 	}
-	alertClient := alert.NewClient(fileLocks, *rulesDir, *prometheusURL, fsclient.NewFSClient(), clientTenancy)
+	alertClient := alert.NewClient(fileLocks, *prometheusURL, fsclient.NewFSClient(*rulesDir), clientTenancy)
 	if err != nil {
 		glog.Fatalf("error creating alert client: %v", err)
 	}

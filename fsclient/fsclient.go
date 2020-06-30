@@ -16,22 +16,32 @@ type FSClient interface {
 	WriteFile(filename string, data []byte, perm os.FileMode) error
 	ReadFile(filename string) ([]byte, error)
 	Stat(filename string) (os.FileInfo, error)
+
+	Root() string
 }
 
-type fsclient struct{}
+type fsclient struct {
+	root string
+}
 
-func NewFSClient() FSClient {
-	return &fsclient{}
+func NewFSClient(root string) FSClient {
+	return &fsclient{
+		root: root,
+	}
 }
 
 func (f *fsclient) WriteFile(filename string, data []byte, perm os.FileMode) error {
-	return ioutil.WriteFile(filename, data, perm)
+	return ioutil.WriteFile(f.root+filename, data, perm)
 }
 
 func (f *fsclient) ReadFile(filename string) ([]byte, error) {
-	return ioutil.ReadFile(filename)
+	return ioutil.ReadFile(f.root + filename)
 }
 
 func (f *fsclient) Stat(filename string) (os.FileInfo, error) {
-	return os.Stat(filename)
+	return os.Stat(f.root + filename)
+}
+
+func (f *fsclient) Root() string {
+	return f.root
 }

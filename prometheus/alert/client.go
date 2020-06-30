@@ -45,16 +45,14 @@ type TenancyConfig struct {
 
 type client struct {
 	fileLocks     *FileLocker
-	rulesDir      string
 	prometheusURL string
 	fsClient      fsclient.FSClient
 	tenancy       TenancyConfig
 }
 
-func NewClient(fileLocks *FileLocker, rulesDir, prometheusURL string, fsClient fsclient.FSClient, tenancy TenancyConfig) PrometheusAlertClient {
+func NewClient(fileLocks *FileLocker, prometheusURL string, fsClient fsclient.FSClient, tenancy TenancyConfig) PrometheusAlertClient {
 	return &client{
 		fileLocks:     fileLocks,
-		rulesDir:      rulesDir,
 		prometheusURL: prometheusURL,
 		fsClient:      fsClient,
 		tenancy:       tenancy,
@@ -71,7 +69,7 @@ func (c *client) ValidateRule(rule rulefmt.Rule) error {
 }
 
 func (c *client) RuleExists(filePrefix, rulename string) bool {
-	filename := makeFilename(filePrefix, c.rulesDir)
+	filename := makeFilename(filePrefix)
 
 	c.fileLocks.Lock(filename)
 	defer c.fileLocks.Unlock(filename)
@@ -86,7 +84,7 @@ func (c *client) RuleExists(filePrefix, rulename string) bool {
 // WriteRule takes an alerting rule and writes it to the rules file for the
 // given filePrefix
 func (c *client) WriteRule(filePrefix string, rule rulefmt.Rule) error {
-	filename := makeFilename(filePrefix, c.rulesDir)
+	filename := makeFilename(filePrefix)
 
 	c.fileLocks.Lock(filename)
 	defer c.fileLocks.Unlock(filename)
@@ -109,7 +107,7 @@ func (c *client) WriteRule(filePrefix string, rule rulefmt.Rule) error {
 }
 
 func (c *client) UpdateRule(filePrefix string, rule rulefmt.Rule) error {
-	filename := makeFilename(filePrefix, c.rulesDir)
+	filename := makeFilename(filePrefix)
 
 	c.fileLocks.Lock(filename)
 	defer c.fileLocks.Unlock(filename)
@@ -137,7 +135,7 @@ func (c *client) UpdateRule(filePrefix string, rule rulefmt.Rule) error {
 }
 
 func (c *client) ReadRules(filePrefix, ruleName string) ([]rulefmt.Rule, error) {
-	filename := makeFilename(filePrefix, c.rulesDir)
+	filename := makeFilename(filePrefix)
 	c.fileLocks.RLock(filename)
 	defer c.fileLocks.RUnlock(filename)
 
@@ -145,7 +143,7 @@ func (c *client) ReadRules(filePrefix, ruleName string) ([]rulefmt.Rule, error) 
 		return []rulefmt.Rule{}, nil
 	}
 
-	ruleFile, err := c.readRuleFile(makeFilename(filePrefix, c.rulesDir))
+	ruleFile, err := c.readRuleFile(makeFilename(filePrefix))
 	if err != nil {
 		return []rulefmt.Rule{}, err
 	}
@@ -160,7 +158,7 @@ func (c *client) ReadRules(filePrefix, ruleName string) ([]rulefmt.Rule, error) 
 }
 
 func (c *client) DeleteRule(filePrefix, ruleName string) error {
-	filename := makeFilename(filePrefix, c.rulesDir)
+	filename := makeFilename(filePrefix)
 	c.fileLocks.Lock(filename)
 	defer c.fileLocks.Unlock(filename)
 
@@ -182,7 +180,7 @@ func (c *client) DeleteRule(filePrefix, ruleName string) error {
 }
 
 func (c *client) BulkUpdateRules(filePrefix string, rules []rulefmt.Rule) (BulkUpdateResults, error) {
-	filename := makeFilename(filePrefix, c.rulesDir)
+	filename := makeFilename(filePrefix)
 	c.fileLocks.Lock(filename)
 	defer c.fileLocks.Unlock(filename)
 
@@ -304,6 +302,6 @@ func (r BulkUpdateResults) String() string {
 	return str.String()
 }
 
-func makeFilename(filePrefix, path string) string {
-	return path + "/" + filePrefix + rulesFilePostfix
+func makeFilename(filePrefix string) string {
+	return filePrefix + rulesFilePostfix
 }
