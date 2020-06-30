@@ -12,7 +12,7 @@ import (
 	"testing"
 
 	"prometheus-configmanager/alertmanager/config"
-	tc "prometheus-configmanager/alertmanager/test_common"
+	tc "prometheus-configmanager/alertmanager/testcommon"
 
 	amconfig "github.com/prometheus/alertmanager/config"
 	"github.com/stretchr/testify/assert"

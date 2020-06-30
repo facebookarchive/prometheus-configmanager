@@ -145,7 +145,6 @@ type PushoverConfig struct {
 	Expire   model.Duration `yaml:"expire,omitempty" json:"expire,omitempty"`
 }
 
-// Pushover JSONWrapper
 type PushoverJSONWrapper struct {
 	HTTPConfig *common.HTTPConfig `yaml:"http_config,omitempty" json:"http_config,omitempty"`
 

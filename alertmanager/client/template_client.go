@@ -49,9 +49,8 @@ func NewTemplateClient(fsClient fsclient.FSClient, fileLocks *alert.FileLocker) 
 }
 
 type templateClient struct {
-	templateDir string
-	fsClient    fsclient.FSClient
-	fileLocks   *alert.FileLocker
+	fsClient  fsclient.FSClient
+	fileLocks *alert.FileLocker
 }
 
 func (t *templateClient) GetTemplateFile(filename string) (string, error) {
@@ -143,6 +142,9 @@ func (t *templateClient) AddTemplate(filename, tmplName, tmplText string) error 
 
 	newTmpl := &template.Template{}
 	newTmplBody, err := newTmpl.Parse(tmplText)
+	if err != nil {
+		return fmt.Errorf("error parsing template: %v", err)
+	}
 	tmplMap[tmplName] = newTmplBody
 
 	return t.writeTmplFile(filename, writeTmplMapText(tmplMap))

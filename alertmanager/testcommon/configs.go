@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package test_common
+package testcommon
 
 import (
 	"net/url"

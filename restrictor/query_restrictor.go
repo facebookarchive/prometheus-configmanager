@@ -97,9 +97,8 @@ func (q *QueryRestrictor) addRestrictorLabels() func(n promql.Node, path []promq
 func appendOrReplaceMatcher(matchers []*labels.Matcher, newMatcher labels.Matcher, replaceExistingLabel bool) []*labels.Matcher {
 	if replaceExistingLabel && getMatcherIndex(matchers, newMatcher.Name) >= 0 {
 		return replaceLabelValue(matchers, newMatcher.Name, newMatcher.Value)
-	} else {
-		return append(matchers, &newMatcher)
 	}
+	return append(matchers, &newMatcher)
 }
 
 func getMatcherIndex(matchers []*labels.Matcher, name string) int {

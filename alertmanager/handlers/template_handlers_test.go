@@ -9,14 +9,15 @@ package handlers
 
 import (
 	"encoding/json"
-	"github.com/labstack/echo"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"net/http"
 	"net/http/httptest"
 	"prometheus-configmanager/alertmanager/client/mocks"
 	"strings"
 	"testing"
+
+	"github.com/labstack/echo"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 var (
@@ -42,7 +43,7 @@ func TestGetGetTemplateFileHandler(t *testing.T) {
 	tmplClient = &mocks.TemplateClient{}
 	tmplClient.On("GetTemplateFile", mock.Anything).Return("test file", nil)
 	tmplClient.On("Root").Return(sampleRootDir)
-	c, rec = buildTmplContext(nil, http.MethodGet, "/", v1TemplatePath, "not_a_file")
+	c, _ = buildTmplContext(nil, http.MethodGet, "/", v1TemplatePath, "not_a_file")
 
 	err = GetGetTemplateFileHandler(amClient, tmplClient)(c)
 	assert.Equal(t, http.StatusBadRequest, err.(*echo.HTTPError).Code)
@@ -68,7 +69,7 @@ func TestGetPostTemplateFileHandler(t *testing.T) {
 	tmplClient = &mocks.TemplateClient{}
 	tmplClient.On("CreateTemplateFile", mock.Anything).Return("test file", nil)
 	tmplClient.On("Root").Return(sampleRootDir)
-	c, rec = buildTmplContext(nil, http.MethodPost, "/", v1TemplatePath, "file1")
+	c, _ = buildTmplContext(nil, http.MethodPost, "/", v1TemplatePath, "file1")
 
 	err = GetPostTemplateFileHandler(amClient, tmplClient)(c)
 	assert.Equal(t, http.StatusBadRequest, err.(*echo.HTTPError).Code)
@@ -92,7 +93,7 @@ func TestGetPutTemplateFileHandler(t *testing.T) {
 	tmplClient = &mocks.TemplateClient{}
 	tmplClient.On("EditTemplateFile", mock.Anything).Return("test file", nil)
 	tmplClient.On("Root").Return(sampleRootDir)
-	c, rec = buildTmplContext(nil, http.MethodPut, "/", v1TemplatePath, "not_a_file")
+	c, _ = buildTmplContext(nil, http.MethodPut, "/", v1TemplatePath, "not_a_file")
 
 	err = GetPutTemplateFileHandler(amClient, tmplClient)(c)
 	assert.Equal(t, http.StatusBadRequest, err.(*echo.HTTPError).Code)
@@ -117,7 +118,7 @@ func TestGetDeleteTemplateFileHandler(t *testing.T) {
 	amClient.On("RemoveTemplateFile", mock.Anything).Return(nil)
 	tmplClient = &mocks.TemplateClient{}
 	tmplClient.On("Root").Return(sampleRootDir)
-	c, rec = buildTmplContext(nil, http.MethodGet, "/", v1TemplatePath, "not_a_file")
+	c, _ = buildTmplContext(nil, http.MethodGet, "/", v1TemplatePath, "not_a_file")
 
 	err = GetDeleteTemplateFileHandler(amClient, tmplClient)(c)
 	assert.Equal(t, http.StatusBadRequest, err.(*echo.HTTPError).Code)

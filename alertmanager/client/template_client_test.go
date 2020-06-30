@@ -70,7 +70,7 @@ func TestTemplateClient_GetTemplate(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, expectedText, text)
 
-	text, err = client.GetTemplate("test", "noTemplate")
+	_, err = client.GetTemplate("test", "noTemplate")
 	assert.EqualError(t, err, "template noTemplate not found")
 }
 
@@ -105,6 +105,7 @@ func TestTemplateClient_DeleteTemplate(t *testing.T) {
 	assert.NoError(t, err)
 
 	testFile, err := readTestFileString()
+	assert.NoError(t, err)
 	// Expected to remove first definition
 	expectedText := testFile[strings.Index(testFile, `{{ define "slack.myorg2.text" }}`):] + "\n"
 	assert.Equal(t, expectedText, string(*out))

@@ -14,7 +14,7 @@ import (
 	"gopkg.in/yaml.v2"
 
 	"prometheus-configmanager/alertmanager/config"
-	tc "prometheus-configmanager/alertmanager/test_common"
+	tc "prometheus-configmanager/alertmanager/testcommon"
 	"prometheus-configmanager/fsclient/mocks"
 	"prometheus-configmanager/prometheus/alert"
 

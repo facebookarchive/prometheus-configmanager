@@ -84,7 +84,7 @@ func tenancyMiddlewareProvider(getTenantID paramProvider) echo.MiddlewareFunc {
 		return func(c echo.Context) error {
 			providedTenantID := getTenantID(c)
 			if providedTenantID == "" {
-				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Must provide tenant_id parameter"))
+				return echo.NewHTTPError(http.StatusBadRequest, "Must provide tenant_id parameter")
 			}
 			c.Set(tenantIDParam, providedTenantID)
 			return next(c)

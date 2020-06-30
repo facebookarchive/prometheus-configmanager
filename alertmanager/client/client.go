@@ -260,11 +260,7 @@ func (c *client) GetTemplateFileList() ([]string, error) {
 		return []string{}, err
 	}
 
-	templateFiles := make([]string, 0)
-	for _, tmpl := range conf.Templates {
-		templateFiles = append(templateFiles, tmpl)
-	}
-	return templateFiles, nil
+	return conf.Templates, nil
 }
 
 func (c *client) AddTemplateFile(path string) error {
@@ -275,10 +271,6 @@ func (c *client) AddTemplateFile(path string) error {
 		return err
 	}
 
-	templateFiles := make([]string, 0)
-	for _, tmpl := range conf.Templates {
-		templateFiles = append(templateFiles, tmpl)
-	}
 	conf.Templates = append(conf.Templates, path)
 
 	return c.writeConfigFile(conf)
