@@ -1,0 +1,162 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
+# This source code is licensed under the MIT license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Reference to one or more secrets to be used when pulling images
+# ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+imagePullSecrets: []
+
+volumes:
+  prometheusConfig:
+    volumeSpec: {}
+      # hostPath:
+      #   path: /configs/prometheus
+      #   type: DirectoryOrCreate
+
+prometheusConfigurer:
+  # Enable/Disable chart
+  create: true
+
+  replicas: 1
+
+  port: &port 9100
+
+  # Metric Label used for restricting alerts per-tenant
+  multitenantLabel: ""
+
+  # Boolean to set whether to restrict alert expressions with multitenantLabel
+  restrictQueries: false
+
+  service:
+    annotations: {}
+    labels: {}
+    type: ClusterIP
+    ports:
+      - name: prom-configmanager
+        port: *port
+        targetPort: *port
+
+  prometheusConfigurerPort: *port
+  rulesDir: "/etc/configs/alert_rules"
+  prometheusURL: "prometheus:9090"
+
+  image:
+    repository: prometheus-configurer
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  resources: {}
+  nodeSelector: {}
+  tolerations: []
+
+  # Pod affinity must be used to ensure that this pod runs on same node as prometheus
+
+  # Use the following in your values.yml file to ensure that this pod runs on the same
+  # node as prometheus:
+  affinity: {}
+  # affinity:
+  #   podAffinity:
+  #     requiredDuringSchedulingIgnoredDuringExecution:
+  #       - labelSelector:
+  #           matchExpressions:
+  #             - key: app.kubernetes.io/component
+  #               operator: In
+  #               values:
+  #                 - prometheus
+  #         topologyKey: "kubernetes.io/hostname"
+
+alertmanagerConfigurer:
+  # Enable/Disable chart
+  create: true
+
+  replicas: 1
+
+  port: &port 9091
+
+  # Metric Label used for restricting alerts per-tenant
+  multitenantLabel: ""
+
+  service:
+    annotations: {}
+    labels: {}
+    type: ClusterIP
+    ports:
+      - name: alertmanager-config
+        port: *port
+        targetPort: *port
+
+  alertmanagerConfigPort: *port
+  alertmanagerConfPath: "/etc/configs/alertmanager.yml"
+  alertmanagerURL: "alertmanager:9093"
+
+  image:
+    repository: alertmanager-configurer
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  resources: {}
+  nodeSelector: {}
+  tolerations: []
+
+  # Pod affinity must be used to ensure that this pod runs on same node as prometheus
+  #
+  # Use the following in your values.yml file to ensure that this pod runs on the same
+  # node as prometheus:
+
+  # affinity:
+  #   podAffinity:
+  #     requiredDuringSchedulingIgnoredDuringExecution:
+  #       - labelSelector:
+  #           matchExpressions:
+  #             - key: app.kubernetes.io/component
+  #               operator: In
+  #               values:
+  #                 - prometheus
+  #         topologyKey: "kubernetes.io/hostname"
+  affinity: {}
+
+alertsUI:
+  # Enable/Disable chart
+  create: true
+
+  replicas: 1
+
+  ui_port: &am_port 9091
+
+  alertmanager_address: 'alertmanager:9093'
+  prometheus_address: 'prometheus:9090'
+
+  service:
+    annotations: {}
+    labels: {}
+    type: ClusterIP
+    ports:
+      - name: alertmanager-config
+        port: 3001
+        targetPort: 3001
+
+  image:
+    repository: alerts-ui
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  resources: {}
+  nodeSelector: {}
+  tolerations: []
+
+  # Pod affinity must be used to ensure that this pod runs on same node as prometheus
+
+  # Use the following in your values.yml file to ensure that this pod runs on the same
+  # node as prometheus:
+
+  affinity: {}
+  # affinity:
+  #   podAffinity:
+  #     requiredDuringSchedulingIgnoredDuringExecution:
+  #       - labelSelector:
+  #           matchExpressions:
+  #             - key: app.kubernetes.io/component
+  #               operator: In
+  #               values:
+  #                 - prometheus
+  #         topologyKey: "kubernetes.io/hostname

@@ -1,0 +1,23 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
+# This source code is licensed under the MIT license found in the
+# LICENSE file in the root directory of this source tree.
+
+global:
+  scrape_interval:     15s # By default, scrape targets every 15 seconds.
+  evaluation_interval: 15s # By default, scrape targets every 15 seconds.
+  external_labels:
+    monitor: 'master'
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+rule_files:
+  - '/etc/prometheus/alert_rules/*_rules.yml'
+
+alerting:
+  alertmanagers:
+    - scheme: http
+      static_configs:
+        - targets: ['alertmanager:9093']

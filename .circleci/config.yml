@@ -1,0 +1,123 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
+# This source code is licensed under the MIT license found in the
+# LICENSE file in the root directory of this source tree.
+
+version: 2.1
+
+aliases:
+  - &mktestdir
+    run:
+      name: Create results directory
+      command: mkdir -p ~/test-results
+
+  - &storetestdir
+    store_test_results:
+      path: ~/test-results
+
+executors:
+  golangci:
+      parameters:
+        tag:
+          default: v1.23.8
+          type: string
+      docker:
+        - image: golangci/golangci-lint:<<parameters.tag>>
+
+orbs:
+  docker: circleci/docker@1.0.0
+  go: circleci/go@1.1.0
+  helm: circleci/helm@0.2.3
+
+commands:
+
+  getmods:
+    steps:
+      - go/load-cache
+      - go/mod-download
+      - go/save-cache
+
+  helm-lint:
+    parameters:
+      chart:
+        type: string
+      working_directory:
+        type: string
+    steps:
+      - run:
+          name: Lint <<parameters.chart>> chart
+          working_directory: <<parameters.working_directory>>
+          command: helm lint --strict <<parameters.chart>>
+
+jobs:
+  build:
+    docker:
+      - image: circleci/golang:1.13
+    steps:
+      - checkout
+      - *mktestdir
+      - run:
+          name: Run unit tests
+          command: gotestsum -f short-verbose --junitfile ~/test-results/unit.xml
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - run: docker build -t prometheus-configurer -f Dockerfile.prometheus .
+      - run: docker build -t alertmanager-configurer -f Dockerfile.alertmanager .
+      - run:
+          name: "Start Prometheus Service and Check That it’s Running"
+          command: |
+            docker run -d --name prometheus-configurer prometheus-configurer
+            docker exec prometheus-configurer apk add curl
+            docker exec prometheus-configurer curl --retry 10 --retry-connrefused http://localhost:9100
+      - run:
+          name: "Start Alertmanager Service and Check That it’s Running"
+          command: |
+            docker run -d --name alertmanager-configurer alertmanager-configurer
+            docker exec alertmanager-configurer apk add curl
+            docker exec alertmanager-configurer curl --retry 10 --retry-connrefused http://localhost:9101
+
+      - store_artifacts:
+          path: /tmp/test-results
+          destination: raw-test-output
+      - *storetestdir
+
+  lint:
+    executor: golangci
+    steps:
+      - checkout
+      - *mktestdir
+      - getmods
+      - run:
+          name: Lint tests
+          command: golangci-lint run --out-format junit-xml > ~/test-results/lint.xml
+      - *storetestdir
+
+  helm-lint:
+    executor: docker/docker
+    parameters:
+      working_directory:
+        default: helm
+        type: string
+    steps:
+      - checkout
+      - helm/install-helm-client
+      - helm-lint:
+          chart: prometheus-configmanager
+          working_directory: <<parameters.working_directory>>
+
+  copyright-lint:
+    executor: golangci
+    steps:
+      - checkout
+      - getmods
+      - run:
+          name: Copyright Check
+          command: go run github.com/google/addlicense --check -c Facebook -y 2004-present -l mit ./
+
+workflows:
+  version: 2.1
+  all:
+    jobs:
+      - lint
+      - helm-lint
+      - copyright-lint
+      - build
