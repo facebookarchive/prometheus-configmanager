@@ -13,8 +13,8 @@ import (
 	"regexp"
 	"strings"
 
-	"prometheus-configmanager/alertmanager/config"
-	"prometheus-configmanager/fsclient"
+	"github.com/facebookincubator/prometheus-configmanager/alertmanager/config"
+	"github.com/facebookincubator/prometheus-configmanager/fsclient"
 
 	"github.com/golang/glog"
 	"gopkg.in/yaml.v2"

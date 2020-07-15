@@ -15,10 +15,10 @@ import (
 	"strings"
 	"sync"
 
-	"prometheus-configmanager/fsclient"
-	"prometheus-configmanager/prometheus/alert"
+	"github.com/facebookincubator/prometheus-configmanager/fsclient"
+	"github.com/facebookincubator/prometheus-configmanager/prometheus/alert"
 
-	"prometheus-configmanager/alertmanager/config"
+	"github.com/facebookincubator/prometheus-configmanager/alertmanager/config"
 
 	"gopkg.in/yaml.v2"
 )

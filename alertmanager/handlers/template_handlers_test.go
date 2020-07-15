@@ -11,10 +11,10 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
-	"prometheus-configmanager/alertmanager/client/mocks"
 	"strings"
 	"testing"
 
+	"github.com/facebookincubator/prometheus-configmanager/alertmanager/client/mocks"
 	"github.com/labstack/echo"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"

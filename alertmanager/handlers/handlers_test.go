@@ -17,9 +17,9 @@ import (
 	"strings"
 	"testing"
 
-	"prometheus-configmanager/alertmanager/client/mocks"
-	"prometheus-configmanager/alertmanager/config"
-	"prometheus-configmanager/prometheus/alert"
+	"github.com/facebookincubator/prometheus-configmanager/alertmanager/client/mocks"
+	"github.com/facebookincubator/prometheus-configmanager/alertmanager/config"
+	"github.com/facebookincubator/prometheus-configmanager/prometheus/alert"
 
 	"github.com/labstack/echo"
 	amconfig "github.com/prometheus/alertmanager/config"

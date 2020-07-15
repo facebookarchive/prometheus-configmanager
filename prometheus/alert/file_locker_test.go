@@ -11,8 +11,8 @@ import (
 	"testing"
 	"time"
 
-	"prometheus-configmanager/prometheus/alert"
-	"prometheus-configmanager/prometheus/alert/mocks"
+	"github.com/facebookincubator/prometheus-configmanager/prometheus/alert"
+	"github.com/facebookincubator/prometheus-configmanager/prometheus/alert/mocks"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"

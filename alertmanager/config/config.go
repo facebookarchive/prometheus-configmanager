@@ -11,7 +11,7 @@ import (
 	"fmt"
 	"time"
 
-	"prometheus-configmanager/alertmanager/common"
+	"github.com/facebookincubator/prometheus-configmanager/alertmanager/common"
 
 	amconfig "github.com/prometheus/alertmanager/config"
 	"github.com/prometheus/common/model"

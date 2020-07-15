@@ -10,7 +10,7 @@ package testcommon
 import (
 	"net/url"
 
-	"prometheus-configmanager/alertmanager/config"
+	"github.com/facebookincubator/prometheus-configmanager/alertmanager/config"
 
 	amconfig "github.com/prometheus/alertmanager/config"
 )

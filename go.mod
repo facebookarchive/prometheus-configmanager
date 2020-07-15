@@ -1,4 +1,4 @@
-module prometheus-configmanager
+module github.com/facebookincubator/prometheus-configmanager
 
 go 1.13
 
