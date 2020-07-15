@@ -10,8 +10,8 @@ package alert_test
 import (
 	"testing"
 
-	"prometheus-configmanager/prometheus/alert"
-	"prometheus-configmanager/restrictor"
+	"github.com/facebookincubator/prometheus-configmanager/prometheus/alert"
+	"github.com/facebookincubator/prometheus-configmanager/restrictor"
 
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/pkg/rulefmt"

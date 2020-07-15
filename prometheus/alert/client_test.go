@@ -10,8 +10,8 @@ package alert_test
 import (
 	"testing"
 
-	"prometheus-configmanager/fsclient/mocks"
-	"prometheus-configmanager/prometheus/alert"
+	"github.com/facebookincubator/prometheus-configmanager/fsclient/mocks"
+	"github.com/facebookincubator/prometheus-configmanager/prometheus/alert"
 
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/pkg/rulefmt"

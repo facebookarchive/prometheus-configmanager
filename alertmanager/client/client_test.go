@@ -13,10 +13,10 @@ import (
 
 	"gopkg.in/yaml.v2"
 
-	"prometheus-configmanager/alertmanager/config"
-	tc "prometheus-configmanager/alertmanager/testcommon"
-	"prometheus-configmanager/fsclient/mocks"
-	"prometheus-configmanager/prometheus/alert"
+	"github.com/facebookincubator/prometheus-configmanager/alertmanager/config"
+	tc "github.com/facebookincubator/prometheus-configmanager/alertmanager/testcommon"
+	"github.com/facebookincubator/prometheus-configmanager/fsclient/mocks"
+	"github.com/facebookincubator/prometheus-configmanager/prometheus/alert"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"

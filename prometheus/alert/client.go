@@ -14,7 +14,7 @@ import (
 	"net/http"
 	"strings"
 
-	"prometheus-configmanager/fsclient"
+	"github.com/facebookincubator/prometheus-configmanager/fsclient"
 
 	"github.com/prometheus/prometheus/pkg/rulefmt"
 	"gopkg.in/yaml.v2"

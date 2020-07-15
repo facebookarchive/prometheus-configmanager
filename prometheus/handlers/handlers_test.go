@@ -15,8 +15,8 @@ import (
 	"strings"
 	"testing"
 
-	"prometheus-configmanager/prometheus/alert"
-	"prometheus-configmanager/prometheus/alert/mocks"
+	"github.com/facebookincubator/prometheus-configmanager/prometheus/alert"
+	"github.com/facebookincubator/prometheus-configmanager/prometheus/alert/mocks"
 
 	"github.com/labstack/echo"
 	"github.com/prometheus/common/model"

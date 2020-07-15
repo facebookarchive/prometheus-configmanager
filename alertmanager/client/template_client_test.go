@@ -9,8 +9,8 @@ package client
 
 import (
 	"io/ioutil"
-	"prometheus-configmanager/fsclient/mocks"
-	"prometheus-configmanager/prometheus/alert"
+	"github.com/facebookincubator/prometheus-configmanager/fsclient/mocks"
+	"github.com/facebookincubator/prometheus-configmanager/prometheus/alert"
 	"strings"
 	"testing"
 

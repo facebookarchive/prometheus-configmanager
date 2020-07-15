@@ -11,7 +11,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"prometheus-configmanager/alertmanager/client"
+	"github.com/facebookincubator/prometheus-configmanager/alertmanager/client"
 
 	"github.com/labstack/echo"
 )

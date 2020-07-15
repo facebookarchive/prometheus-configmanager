@@ -10,7 +10,7 @@ package alert
 import (
 	"fmt"
 
-	"prometheus-configmanager/restrictor"
+	"github.com/facebookincubator/prometheus-configmanager/restrictor"
 
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/pkg/rulefmt"

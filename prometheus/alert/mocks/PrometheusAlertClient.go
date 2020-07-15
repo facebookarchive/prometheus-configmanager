@@ -10,7 +10,7 @@
 package mocks
 
 import (
-	alert "prometheus-configmanager/prometheus/alert"
+	alert "github.com/facebookincubator/prometheus-configmanager/prometheus/alert"
 
 	mock "github.com/stretchr/testify/mock"
 

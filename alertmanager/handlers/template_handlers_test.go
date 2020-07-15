@@ -11,7 +11,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
-	"prometheus-configmanager/alertmanager/client/mocks"
+	"github.com/facebookincubator/prometheus-configmanager/alertmanager/client/mocks"
 	"strings"
 	"testing"
 
