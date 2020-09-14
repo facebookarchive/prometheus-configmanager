@@ -12,7 +12,7 @@ import (
 	"strings"
 
 	"github.com/prometheus/prometheus/pkg/labels"
-	"github.com/prometheus/prometheus/promql"
+	"github.com/prometheus/prometheus/promql/parser"
 )
 
 // QueryRestrictor provides functionality to add restrictor labels to a
@@ -64,11 +64,11 @@ func (q *QueryRestrictor) RestrictQuery(query string) (string, error) {
 		return "", fmt.Errorf("empty query string")
 	}
 
-	promQuery, err := promql.ParseExpr(query)
+	promQuery, err := parser.ParseExpr(query)
 	if err != nil {
 		return "", fmt.Errorf("error parsing query: %v", err)
 	}
-	promql.Inspect(promQuery, q.addRestrictorLabels())
+	parser.Inspect(promQuery, q.addRestrictorLabels())
 	return promQuery.String(), nil
 }
 
@@ -77,17 +77,17 @@ func (q *QueryRestrictor) Matchers() []labels.Matcher {
 	return q.matchers
 }
 
-func (q *QueryRestrictor) addRestrictorLabels() func(n promql.Node, path []promql.Node) error {
-	return func(n promql.Node, path []promql.Node) error {
+func (q *QueryRestrictor) addRestrictorLabels() func(n parser.Node, path []parser.Node) error {
+	return func(n parser.Node, path []parser.Node) error {
 		if n == nil {
 			return nil
 		}
 		for _, matcher := range q.matchers {
 			switch n := n.(type) {
-			case *promql.VectorSelector:
+			case *parser.VectorSelector:
 				n.LabelMatchers = appendOrReplaceMatcher(n.LabelMatchers, matcher, q.ReplaceExistingLabel)
-			case *promql.MatrixSelector:
-				n.LabelMatchers = appendOrReplaceMatcher(n.LabelMatchers, matcher, q.ReplaceExistingLabel)
+			case *parser.MatrixSelector:
+				n.VectorSelector.(*parser.VectorSelector).LabelMatchers = appendOrReplaceMatcher(n.VectorSelector.(*parser.VectorSelector).LabelMatchers, matcher, q.ReplaceExistingLabel)
 			}
 		}
 		return nil

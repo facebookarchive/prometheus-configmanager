@@ -10,6 +10,7 @@ package alert
 import (
 	"bytes"
 	"fmt"
+	"gopkg.in/yaml.v3"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -17,7 +18,6 @@ import (
 	"github.com/facebookincubator/prometheus-configmanager/fsclient"
 
 	"github.com/prometheus/prometheus/pkg/rulefmt"
-	"gopkg.in/yaml.v2"
 )
 
 const (
@@ -61,7 +61,16 @@ func NewClient(fileLocks *FileLocker, prometheusURL string, fsClient fsclient.FS
 
 // ValidateRule checks that a new alert rule is a valid specification
 func (c *client) ValidateRule(rule rulefmt.Rule) error {
-	errs := rule.Validate()
+	// convert to RuleNode for validation
+	node := rulefmt.RuleNode{
+		Record:      yaml.Node{Value: rule.Record},
+		Alert:       yaml.Node{Value: rule.Alert},
+		Expr:        yaml.Node{Value: rule.Expr},
+		For:         0,
+		Labels:      nil,
+		Annotations: nil,
+	}
+	errs := node.Validate()
 	if len(errs) != 0 {
 		return fmt.Errorf("invalid rule: %v", errs)
 	}
