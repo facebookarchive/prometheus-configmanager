@@ -42,7 +42,7 @@ func TestConfig_Validate(t *testing.T) {
 	invalidPushoverReceiverJSON := config.PushoverJSONWrapper{
 		UserKey: "0",
 		Token:   "0",
-		Expire:  "1m1s",
+		Expire:  "1s1m",
 	}
 	invalidPushoverReceiverWrapper := config.ReceiverJSONWrapper{
 		Name:            "invalidPushover",
@@ -50,7 +50,7 @@ func TestConfig_Validate(t *testing.T) {
 	}
 
 	_, err = invalidPushoverReceiverWrapper.ToReceiverFmt()
-	assert.EqualError(t, err, `not a valid duration string: "1m1s"`)
+	assert.EqualError(t, err, `not a valid duration string: "1s1m"`)
 
 	validPushoverReceiverJSON := config.PushoverJSONWrapper{
 		UserKey: "0",

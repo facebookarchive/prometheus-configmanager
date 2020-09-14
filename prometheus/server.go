@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strings"
 
 	"github.com/facebookincubator/prometheus-configmanager/fsclient"
 	"github.com/facebookincubator/prometheus-configmanager/prometheus/alert"
@@ -35,6 +36,10 @@ func main() {
 	multitenancyLabel := flag.String("multitenant-label", "tenant", fmt.Sprintf("The label name to segment alerting rules to enable multi-tenant support, having each tenant's alerts in a separate file. Default is %s", defaultTenancyLabel))
 	restrictQueries := flag.Bool("restrict-queries", false, "If this flag is set all alert rule expressions will be restricted to only match series with {<multitenant-label>=<tenant>}")
 	flag.Parse()
+
+	if !strings.HasSuffix(*rulesDir, "/") {
+		*rulesDir += "/"
+	}
 
 	// Check if rulesDir exists and create it if not
 	if _, err := os.Stat(*rulesDir); os.IsNotExist(err) {

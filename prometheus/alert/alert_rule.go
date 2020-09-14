@@ -17,12 +17,19 @@ import (
 )
 
 type File struct {
-	RuleGroups []rulefmt.RuleGroup `yaml:"groups"`
+	RuleGroups []RuleGroup `yaml:"groups"`
+}
+
+// RuleGroup holds the fields in a Prometheus Alert Rule Group
+type RuleGroup struct {
+	Name     string         `yaml:"name"`
+	Interval model.Duration `yaml:"interval,omitempty"`
+	Rules    []rulefmt.Rule `yaml:"rules"`
 }
 
 func NewFile(tenantID string) *File {
 	return &File{
-		RuleGroups: []rulefmt.RuleGroup{{
+		RuleGroups: []RuleGroup{{
 			Name: tenantID,
 		}},
 	}

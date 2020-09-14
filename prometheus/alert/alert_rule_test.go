@@ -154,7 +154,7 @@ func TestRuleJSONWrapper_ToRuleFmt(t *testing.T) {
 
 func sampleFile() alert.File {
 	return alert.File{
-		RuleGroups: []rulefmt.RuleGroup{{
+		RuleGroups: []alert.RuleGroup{{
 			Name:  "testGroup",
 			Rules: []rulefmt.Rule{sampleRule},
 		},
