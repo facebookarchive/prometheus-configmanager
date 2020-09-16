@@ -200,15 +200,6 @@ func (r *ReceiverJSONWrapper) ToReceiverFmt() (Receiver, error) {
 	return receiver, nil
 }
 
-// MarshalYAML implements the yaml.Marshaler interface for EmailConfig and
-// forces RequireTLS to be false. RequireTLS must be false since we don't support
-// storing certificate files.
-func (e EmailConfig) MarshalYAML() (interface{}, error) {
-	valFalse := false
-	e.RequireTLS = &valFalse
-	return e, nil
-}
-
 // WebhookConfig is a copy of prometheus/alertmanager/config.WebhookConfig with
 // alertmanager-configurer's custom HTTPConfig
 type WebhookConfig struct {
