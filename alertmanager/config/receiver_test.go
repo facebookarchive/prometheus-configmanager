@@ -179,8 +179,6 @@ func TestReceiver_Unsecure(t *testing.T) {
 	assert.Equal(t, "receiverName", rec.Name)
 }
 
-// TestMarshalYamlEmailConfig checks that all EmailConfigs are marshaled with
-// requireTLS set to false
 func TestMarshalYamlEmailConfig(t *testing.T) {
 	valTrue := true
 	emailConf := config.EmailConfig{
@@ -190,6 +188,5 @@ func TestMarshalYamlEmailConfig(t *testing.T) {
 	}
 	ymlData, err := yaml.Marshal(emailConf)
 	assert.NoError(t, err)
-	assert.True(t, strings.Contains(string(ymlData), "require_tls: false"))
-	assert.False(t, strings.Contains(string(ymlData), "require_tls: true"))
+	assert.True(t, strings.Contains(string(ymlData), "require_tls: true"))
 }
