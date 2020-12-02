@@ -65,6 +65,7 @@ func UnsecureReceiverName(name, tenantID string) string {
 // is marshaled as is instead of being obscured which is how alertmanager handles
 // secrets
 type SlackConfig struct {
+	config.NotifierConfig `yaml:",inline" json:"notifier_config,inline"`
 	HTTPConfig *common.HTTPConfig `yaml:"http_config,omitempty" json:"http_config,omitempty"`
 
 	APIURL      string                `yaml:"api_url" json:"api_url"`
@@ -93,7 +94,7 @@ type SlackConfig struct {
 // alertmanager handles secrets. Otherwise the secrets would be obscured on write
 // to the yml file, making it unusable.
 type EmailConfig struct {
-	config.NotifierConfig `yaml:",inline" json:",inline"`
+	config.NotifierConfig `yaml:",inline" json:"notifier_config,inline"`
 
 	To           string            `yaml:"to,omitempty" json:"to,omitempty"`
 	From         string            `yaml:"from,omitempty" json:"from,omitempty"`
@@ -114,6 +115,7 @@ type EmailConfig struct {
 // alertmanager handles secrets. Otherwise the secrets would be obscured on
 // write to the yml file, making it unusable.
 type PagerDutyConfig struct {
+	config.NotifierConfig `yaml:",inline" json:"notifier_config,inline"`
 	HTTPConfig *common.HTTPConfig `yaml:"http_config,omitempty" json:"http_config,omitempty"`
 
 	RoutingKey  string                   `yaml:"routing_key,omitempty" json:"routing_key,omitempty"`
@@ -133,6 +135,7 @@ type PagerDutyConfig struct {
 // alertmanager handles secrets. Otherwise the secrets would be obscured on
 // write to the yml file, making it unusable.
 type PushoverConfig struct {
+	config.NotifierConfig `yaml:",inline" json:"notifier_config,inline"`
 	HTTPConfig *common.HTTPConfig `yaml:"http_config,omitempty" json:"http_config,omitempty"`
 
 	UserKey  string         `yaml:"user_key" json:"user_key"`
@@ -146,6 +149,7 @@ type PushoverConfig struct {
 }
 
 type PushoverJSONWrapper struct {
+	config.NotifierConfig `yaml:",inline" json:"notifier_config,inline"`
 	HTTPConfig *common.HTTPConfig `yaml:"http_config,omitempty" json:"http_config,omitempty"`
 
 	UserKey  string `yaml:"user_key" json:"user_key"`
@@ -172,6 +176,7 @@ func (r *ReceiverJSONWrapper) ToReceiverFmt() (Receiver, error) {
 
 	for _, p := range r.PushoverConfigs {
 		pushoverConf := PushoverConfig{
+			NotifierConfig: p.NotifierConfig,
 			HTTPConfig: p.HTTPConfig,
 			UserKey:    p.UserKey,
 			Token:      p.Token,
@@ -203,7 +208,7 @@ func (r *ReceiverJSONWrapper) ToReceiverFmt() (Receiver, error) {
 // WebhookConfig is a copy of prometheus/alertmanager/config.WebhookConfig with
 // alertmanager-configurer's custom HTTPConfig
 type WebhookConfig struct {
-	config.NotifierConfig
+	config.NotifierConfig `yaml:",inline" json:"notifier_config,inline"`
 
 	HTTPConfig *common.HTTPConfig `yaml:"http_config,omitempty" json:"http_config,omitempty"`
 
