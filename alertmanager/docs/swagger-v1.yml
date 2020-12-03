@@ -380,6 +380,8 @@ definitions:
     required:
       - api_url
     properties:
+      notifier_config:
+        $ref: '#/definitions/notifier_config'
       http_config:
         $ref: '#/definitions/http_config'
       api_url:
@@ -534,6 +536,8 @@ definitions:
       - user_key
       - token
     properties:
+      notifier_config:
+        $ref: '#/definitions/notifier_config'
       http_config:
         $ref: '#/definitions/http_config'
       user_key:
