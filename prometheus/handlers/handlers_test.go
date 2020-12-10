@@ -27,7 +27,9 @@ import (
 
 var (
 	sampleDuration, _ = model.ParseDuration("5s")
-	sampleAlert1      = rulefmt.Rule{
+	longDuration, _   = model.ParseDuration("1w1d")
+
+	sampleAlert1 = rulefmt.Rule{
 		Alert:       "testAlert1",
 		For:         sampleDuration,
 		Expr:        "up == 0",
@@ -47,6 +49,11 @@ var (
 		For:         "5s",
 		Labels:      map[string]string{"label": "value"},
 		Annotations: map[string]string{"annotation": "value"},
+	}
+	sampleLongDurationRule = rulefmt.Rule{
+		Alert: "testLongDurationAlert",
+		For:   longDuration,
+		Expr:  "up",
 	}
 )
 
@@ -122,6 +129,15 @@ func TestGetRetrieveAlertHandler(t *testing.T) {
 	c, rec := buildContext(sampleAlert1, http.MethodPost, "/", v1alertPath, testNID)
 
 	err := GetRetrieveAlertHandler(client)(c)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusOK, rec.Code)
+	client.AssertExpectations(t)
+
+	// reads rule with long duration
+	client.On("ReadRules", testNID, "").Return([]rulefmt.Rule{sampleLongDurationRule}, nil)
+	c, rec = buildContext(sampleAlert1, http.MethodPost, "/", v1alertPath, testNID)
+
+	err = GetRetrieveAlertHandler(client)(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, rec.Code)
 	client.AssertExpectations(t)

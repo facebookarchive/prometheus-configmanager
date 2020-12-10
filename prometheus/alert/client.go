@@ -10,10 +10,11 @@ package alert
 import (
 	"bytes"
 	"fmt"
-	"gopkg.in/yaml.v3"
 	"io/ioutil"
 	"net/http"
 	"strings"
+
+	"gopkg.in/yaml.v3"
 
 	"github.com/facebookincubator/prometheus-configmanager/fsclient"
 
