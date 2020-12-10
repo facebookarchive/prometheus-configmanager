@@ -12,7 +12,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"time"
 
 	"github.com/facebookincubator/prometheus-configmanager/prometheus/alert"
 
@@ -295,15 +294,11 @@ func rulesToJSON(rules []rulefmt.Rule) ([]alert.RuleJSONWrapper, error) {
 }
 
 func rulefmtToJSON(rule rulefmt.Rule) (*alert.RuleJSONWrapper, error) {
-	duration, err := time.ParseDuration(rule.For.String())
-	if err != nil {
-		return nil, err
-	}
 	return &alert.RuleJSONWrapper{
 		Record:      rule.Record,
 		Alert:       rule.Alert,
 		Expr:        rule.Expr,
-		For:         duration.String(),
+		For:         rule.For.String(),
 		Labels:      rule.Labels,
 		Annotations: rule.Annotations,
 	}, nil
