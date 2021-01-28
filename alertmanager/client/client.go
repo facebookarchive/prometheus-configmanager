@@ -54,21 +54,29 @@ type AlertmanagerClient interface {
 	Tenancy() *alert.TenancyConfig
 }
 
+type ClientConfig struct {
+	ConfigPath      string
+	AlertmanagerURL string
+	FsClient        fsclient.FSClient
+	Tenancy         *alert.TenancyConfig
+	DeleteRoutes    bool
+}
+
 // Client provides methods to create and read receiver configurations
 type client struct {
-	configPath      string
-	alertmanagerURL string
-	fsClient        fsclient.FSClient
-	tenancy         *alert.TenancyConfig
+	conf ClientConfig
 	sync.RWMutex
 }
 
-func NewClient(configPath, alertmanagerURL string, tenancy *alert.TenancyConfig, fsClient fsclient.FSClient) AlertmanagerClient {
+func NewClient(conf ClientConfig) AlertmanagerClient {
 	return &client{
-		configPath:      configPath,
-		alertmanagerURL: alertmanagerURL,
-		fsClient:        fsClient,
-		tenancy:         tenancy,
+		conf: ClientConfig{
+			ConfigPath:      conf.ConfigPath,
+			AlertmanagerURL: conf.AlertmanagerURL,
+			FsClient:        conf.FsClient,
+			Tenancy:         conf.Tenancy,
+			DeleteRoutes:    conf.DeleteRoutes,
+		},
 	}
 }
 
@@ -156,14 +164,27 @@ func (c *client) DeleteReceiver(tenantID, receiverName string) error {
 
 	receiverToDelete := config.SecureReceiverName(receiverName, tenantID)
 
+	foundReceiver := false
 	for idx, rec := range conf.Receivers {
 		if rec.Name == receiverToDelete {
 			conf.Receivers = append(conf.Receivers[:idx], conf.Receivers[idx+1:]...)
-			return c.writeConfigFile(conf)
+			foundReceiver = true
+			break
+		}
+	}
+	if !foundReceiver {
+		return fmt.Errorf("receiver '%s' does not exist", receiverName)
+	}
+
+	if c.conf.DeleteRoutes {
+		conf.RemoveReceiverFromRoute(receiverToDelete)
+	} else {
+		if conf.SearchRoutesForReceiver(receiverToDelete) {
+			return fmt.Errorf("reciever '%s' referenced in route. Update routing tree and remove references before deleting this receiver", receiverName)
 		}
 	}
 
-	return fmt.Errorf("Receiver '%s' does not exist", receiverName)
+	return c.writeConfigFile(conf)
 }
 
 // ModifyTenantRoute takes a new route for a tenant and replaces the old one,
@@ -189,8 +210,8 @@ func (c *client) ModifyTenantRoute(tenantID string, route *config.Route) error {
 		route.Match = map[string]string{}
 	}
 
-	if c.tenancy.RestrictorLabel != "" {
-		route.Match[c.tenancy.RestrictorLabel] = tenantID
+	if c.conf.Tenancy.RestrictorLabel != "" {
+		route.Match[c.conf.Tenancy.RestrictorLabel] = tenantID
 	}
 
 	for _, childRoute := range route.Routes {
@@ -202,7 +223,7 @@ func (c *client) ModifyTenantRoute(tenantID string, route *config.Route) error {
 
 	tenantRouteIdx := conf.GetRouteIdx(config.MakeBaseRouteName(tenantID))
 	if tenantRouteIdx < 0 {
-		err := conf.InitializeNetworkBaseRoute(route, c.tenancy.RestrictorLabel, tenantID)
+		err := conf.InitializeNetworkBaseRoute(route, c.conf.Tenancy.RestrictorLabel, tenantID)
 		if err != nil {
 			return err
 		}
@@ -301,7 +322,7 @@ func (c *client) RemoveTemplateFile(path string) error {
 }
 
 func (c *client) ReloadAlertmanager() error {
-	resp, err := http.Post(fmt.Sprintf("http://%s%s", c.alertmanagerURL, "/-/reload"), "text/plain", &bytes.Buffer{})
+	resp, err := http.Post(fmt.Sprintf("http://%s%s", c.conf.AlertmanagerURL, "/-/reload"), "text/plain", &bytes.Buffer{})
 	if err != nil {
 		return fmt.Errorf("error reloading alertmanager: %v", err)
 	}
@@ -310,10 +331,6 @@ func (c *client) ReloadAlertmanager() error {
 		return fmt.Errorf("code: %d error reloading alertmanager: %s", resp.StatusCode, msg)
 	}
 	return nil
-}
-
-func (c *client) Tenancy() *alert.TenancyConfig {
-	return c.tenancy
 }
 
 func (c *client) GetGlobalConfig() (*config.GlobalConfig, error) {
@@ -344,9 +361,13 @@ func (c *client) SetGlobalConfig(globalConfig config.GlobalConfig) error {
 	return c.writeConfigFile(conf)
 }
 
+func (c *client) Tenancy() *alert.TenancyConfig {
+	return c.conf.Tenancy
+}
+
 func (c *client) readConfigFile() (*config.Config, error) {
 	configFile := config.Config{}
-	file, err := c.fsClient.ReadFile(c.configPath)
+	file, err := c.conf.FsClient.ReadFile(c.conf.ConfigPath)
 	if err != nil {
 		return nil, fmt.Errorf("error reading config files: %v", err)
 	}
@@ -360,7 +381,7 @@ func (c *client) writeConfigFile(conf *config.Config) error {
 	if err != nil {
 		return fmt.Errorf("error marshaling config file: %v", err)
 	}
-	err = c.fsClient.WriteFile(c.configPath, yamlFile, 0660)
+	err = c.conf.FsClient.WriteFile(c.conf.ConfigPath, yamlFile, 0660)
 	if err != nil {
 		return fmt.Errorf("error writing config file: %v", err)
 	}

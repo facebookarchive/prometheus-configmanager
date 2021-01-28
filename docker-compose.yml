@@ -30,6 +30,7 @@ services:
       - '-alertmanagerURL=alertmanager:9093'
       - '-multitenant-label=tenant'
       - '-template-directory=/etc/configs/templates'
+      - '-delete-route-with-receiver=true'
     volumes:
       - ./default_configs:/etc/configs
     ports:
