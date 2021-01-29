@@ -26,7 +26,7 @@ executors:
 orbs:
   docker: circleci/docker@1.0.0
   go: circleci/go@1.1.0
-  helm: circleci/helm@0.2.3
+  helm: circleci/helm@1.2.0
 
 commands:
 
