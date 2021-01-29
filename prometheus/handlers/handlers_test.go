@@ -43,8 +43,15 @@ var (
 		Labels:      map[string]string{"label": "value"},
 		Annotations: map[string]string{"annotation": "value"},
 	}
-	sampleJSONRule = alert.RuleJSONWrapper{
+	sampleJSONRule1 = alert.RuleJSONWrapper{
 		Alert:       "testAlert1",
+		Expr:        "up == 0",
+		For:         "5s",
+		Labels:      map[string]string{"label": "value"},
+		Annotations: map[string]string{"annotation": "value"},
+	}
+	sampleJSONRule2 = alert.RuleJSONWrapper{
+		Alert:       "testAlert2",
 		Expr:        "up == 0",
 		For:         "5s",
 		Labels:      map[string]string{"label": "value"},
@@ -294,24 +301,25 @@ func TestGetBulkAlertUpdateHandler(t *testing.T) {
 	client.On("ValidateRule", mock.Anything).Return(nil)
 	client.On("ReloadPrometheus").Return(nil)
 
-	bytes, err := json.Marshal([]rulefmt.Rule{sampleAlert1, sampleAlert2})
-	assert.NoError(t, err)
+	c, rec := buildContext([]rulefmt.Rule{sampleAlert1, sampleAlert2}, http.MethodPut, "/", "/:file_prefix/alert/bulk", testNID)
 
-	req := httptest.NewRequest(http.MethodPut, "/", strings.NewReader(string(bytes)))
-	rec := httptest.NewRecorder()
-
-	c := echo.New().NewContext(req, rec)
-	c.SetPath("/:file_prefix/alert/bulk")
-	c.SetParamNames("file_prefix")
-	c.SetParamValues(testNID)
-	c.Set(tenantIDParam, testNID)
-
-	err = GetBulkAlertUpdateHandler(client)(c)
+	err := GetBulkAlertUpdateHandler(client)(c)
 	assert.NoError(t, err)
 	client.AssertExpectations(t)
 	assert.Equal(t, http.StatusOK, rec.Code)
 
 	var results alert.BulkUpdateResults
+	err = json.Unmarshal(rec.Body.Bytes(), &results)
+	assert.NoError(t, err)
+	assert.Equal(t, sampleUpdateResult, results)
+
+	// Bulk update with json format
+	c, rec = buildContext([]alert.RuleJSONWrapper{sampleJSONRule1, sampleJSONRule2}, http.MethodPut, "/", "/:file_prefix/alert/bulk", testNID)
+	err = GetBulkAlertUpdateHandler(client)(c)
+	assert.NoError(t, err)
+	client.AssertExpectations(t)
+	assert.Equal(t, http.StatusOK, rec.Code)
+
 	err = json.Unmarshal(rec.Body.Bytes(), &results)
 	assert.NoError(t, err)
 	assert.Equal(t, sampleUpdateResult, results)
@@ -376,7 +384,7 @@ func TestDecodeRulePostRequest(t *testing.T) {
 	assert.Equal(t, sampleAlert1, conf)
 
 	// Decode JSONWrapped Route
-	c, _ = buildContext(sampleJSONRule, http.MethodPost, "/", v1alertPath, testNID)
+	c, _ = buildContext(sampleJSONRule1, http.MethodPost, "/", v1alertPath, testNID)
 	conf, err = decodeRulePostRequest(c)
 	assert.NoError(t, err)
 	assert.Equal(t, sampleAlert1, conf)
