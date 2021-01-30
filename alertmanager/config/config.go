@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/facebookincubator/prometheus-configmanager/alertmanager/common"
+	"github.com/thoas/go-funk"
 
 	amconfig "github.com/prometheus/alertmanager/config"
 	"github.com/prometheus/common/model"
@@ -82,6 +83,51 @@ func (c *Config) Validate() error {
 		return err
 	}
 	return nil
+}
+
+func (c *Config) SearchRoutesForReceiver(receiver string) bool {
+	if c.Route.Receiver == receiver {
+		return true
+	}
+	for _, route := range c.Route.Routes {
+		if searchRoutesForReceiverImpl(receiver, route) {
+			return true
+		}
+	}
+	return false
+}
+
+func searchRoutesForReceiverImpl(receiver string, route *Route) bool {
+	if route.Receiver == receiver {
+		return true
+	}
+	for _, route := range route.Routes {
+		if searchRoutesForReceiverImpl(receiver, route) {
+			return true
+		}
+	}
+	return false
+}
+
+func (c *Config) RemoveReceiverFromRoute(receiver string) {
+	for i, route := range c.Route.Routes {
+		c.Route.Routes[i] = removeReceiverFromRouteImpl(receiver, route)
+	}
+	prunedRoutes := funk.Filter(c.Route.Routes, func(x *Route) bool {return x != nil})
+	c.Route.Routes = prunedRoutes.([]*Route)
+}
+
+func removeReceiverFromRouteImpl(receiver string, route *Route) *Route {
+	if route.Receiver == receiver {
+		return nil
+	}
+	for i, childRoute := range route.Routes {
+		route.Routes[i] = removeReceiverFromRouteImpl(receiver, childRoute)
+	}
+	// Remove nil routes from array
+	prunedRoutes := funk.Filter(route.Routes, func(x *Route) bool {return x != nil})
+	route.Routes = prunedRoutes.([]*Route)
+	return route
 }
 
 // GlobalConfig is a copy of prometheus/alertmanager/config.GlobalConfig with
