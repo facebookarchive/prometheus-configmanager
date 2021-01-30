@@ -84,7 +84,10 @@ func (c *client) RuleExists(filePrefix, rulename string) bool {
 	c.fileLocks.Lock(filename)
 	defer c.fileLocks.Unlock(filename)
 
-	ruleFile, err := c.initializeRuleFile(filePrefix, filename)
+	if !c.ruleFileExists(filename) {
+		return false
+	}
+	ruleFile, err := c.readRuleFile(filename)
 	if err != nil {
 		return false
 	}
@@ -99,7 +102,7 @@ func (c *client) WriteRule(filePrefix string, rule rulefmt.Rule) error {
 	c.fileLocks.Lock(filename)
 	defer c.fileLocks.Unlock(filename)
 
-	ruleFile, err := c.initializeRuleFile(filePrefix, filename)
+	ruleFile, err := c.readOrInitializeRuleFile(filePrefix, filename)
 	if err != nil {
 		return err
 	}
@@ -122,7 +125,7 @@ func (c *client) UpdateRule(filePrefix string, rule rulefmt.Rule) error {
 	c.fileLocks.Lock(filename)
 	defer c.fileLocks.Unlock(filename)
 
-	ruleFile, err := c.initializeRuleFile(filePrefix, filename)
+	ruleFile, err := c.readOrInitializeRuleFile(filePrefix, filename)
 	if err != nil {
 		return err
 	}
@@ -194,7 +197,7 @@ func (c *client) BulkUpdateRules(filePrefix string, rules []rulefmt.Rule) (BulkU
 	c.fileLocks.Lock(filename)
 	defer c.fileLocks.Unlock(filename)
 
-	ruleFile, err := c.readRuleFile(filename)
+	ruleFile, err := c.readOrInitializeRuleFile(filePrefix, filename)
 	if err != nil {
 		return BulkUpdateResults{}, err
 	}
@@ -255,6 +258,13 @@ func (c *client) writeRuleFile(ruleFile *File, filename string) error {
 		return fmt.Errorf("error writing rules file: %v", err)
 	}
 	return nil
+}
+
+func (c *client) readOrInitializeRuleFile(filePrefix, filename string) (*File, error) {
+	if c.ruleFileExists(filename) {
+		return c.readRuleFile(filename)
+	}
+	return c.initializeRuleFile(filePrefix, filename)
 }
 
 func (c *client) initializeRuleFile(filePrefix, filename string) (*File, error) {

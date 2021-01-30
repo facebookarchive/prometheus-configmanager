@@ -14,7 +14,6 @@ import (
 	"net/http"
 
 	"github.com/facebookincubator/prometheus-configmanager/prometheus/alert"
-
 	"github.com/labstack/echo"
 	"github.com/prometheus/prometheus/pkg/rulefmt"
 )
@@ -147,12 +146,7 @@ func GetRetrieveAlertHandler(client alert.PrometheusAlertClient) func(c echo.Con
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
-
-		jsonRules, err := rulesToJSON(rules)
-		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
-		}
-		return c.JSON(http.StatusOK, jsonRules)
+		return c.JSON(http.StatusOK, rulesToJSON(rules))
 	}
 }
 
@@ -274,26 +268,39 @@ func decodeBulkRulesPostRequest(c echo.Context) ([]rulefmt.Rule, error) {
 	}
 	var payload []rulefmt.Rule
 	err = json.Unmarshal(body, &payload)
-	if err != nil {
-		return payload, fmt.Errorf("error unmarshalling payload: %v", err)
+	if err == nil {
+		return payload, nil
 	}
-	return payload, nil
+	// Try to unmarshal into the RuleJSONWrapper struct if prometheus struct doesn't work
+	jsonPayload := []alert.RuleJSONWrapper{}
+	err = json.Unmarshal(body, &jsonPayload)
+	if err != nil {
+		return []rulefmt.Rule{}, fmt.Errorf("error unmarshalling payload: %v", err)
+	}
+	return rulesFromJSON(jsonPayload)
 }
 
-func rulesToJSON(rules []rulefmt.Rule) ([]alert.RuleJSONWrapper, error) {
+func rulesToJSON(rules []rulefmt.Rule) []alert.RuleJSONWrapper {
 	ret := make([]alert.RuleJSONWrapper, 0)
-
 	for _, rule := range rules {
-		jsonRule, err := rulefmtToJSON(rule)
+		ret = append(ret, *rulefmtToJSON(rule))
+	}
+	return ret
+}
+
+func rulesFromJSON(rules []alert.RuleJSONWrapper) ([]rulefmt.Rule, error) {
+	ret := make([]rulefmt.Rule, 0)
+	for _, rule := range rules {
+		jsonRule, err := rule.ToRuleFmt()
 		if err != nil {
 			return ret, err
 		}
-		ret = append(ret, *jsonRule)
+		ret = append(ret, jsonRule)
 	}
 	return ret, nil
 }
 
-func rulefmtToJSON(rule rulefmt.Rule) (*alert.RuleJSONWrapper, error) {
+func rulefmtToJSON(rule rulefmt.Rule) *alert.RuleJSONWrapper {
 	return &alert.RuleJSONWrapper{
 		Record:      rule.Record,
 		Alert:       rule.Alert,
@@ -301,5 +308,5 @@ func rulefmtToJSON(rule rulefmt.Rule) (*alert.RuleJSONWrapper, error) {
 		For:         rule.For.String(),
 		Labels:      rule.Labels,
 		Annotations: rule.Annotations,
-	}, nil
+	}
 }
