@@ -14,6 +14,7 @@ import (
 	"net/http"
 
 	"github.com/facebookincubator/prometheus-configmanager/prometheus/alert"
+	"github.com/golang/glog"
 	"github.com/labstack/echo"
 	"github.com/prometheus/prometheus/pkg/rulefmt"
 )
@@ -109,13 +110,15 @@ var queryAlertNameProvider = func(c echo.Context) string {
 // write the alert configuration from the body of this request
 func GetConfigureAlertHandler(client alert.PrometheusAlertClient) func(c echo.Context) error {
 	return func(c echo.Context) error {
+		defer glog.Flush()
 		rule, err := decodeRulePostRequest(c)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 		tenantID := c.Get(tenantIDParam).(string)
+		glog.Infof("Configure Alert: Tenant: %s, %+v", tenantID, rule)
 
-		err = client.ValidateRule(rule)
+		err = alert.ValidateRule(rule)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
@@ -139,8 +142,10 @@ func GetConfigureAlertHandler(client alert.PrometheusAlertClient) func(c echo.Co
 
 func GetRetrieveAlertHandler(client alert.PrometheusAlertClient) func(c echo.Context) error {
 	return func(c echo.Context) error {
+		defer glog.Flush()
 		ruleName := c.QueryParam(ruleNameParam)
 		tenantID := c.Get(tenantIDParam).(string)
+		glog.Infof("Get Rule: Tenant: %s, rule: %s", tenantID, ruleName)
 
 		rules, err := client.ReadRules(tenantID, ruleName)
 		if err != nil {
@@ -152,8 +157,10 @@ func GetRetrieveAlertHandler(client alert.PrometheusAlertClient) func(c echo.Con
 
 func GetDeleteAlertHandler(client alert.PrometheusAlertClient, getRuleName paramProvider) func(c echo.Context) error {
 	return func(c echo.Context) error {
+		defer glog.Flush()
 		ruleName := getRuleName(c)
 		tenantID := c.Get(tenantIDParam).(string)
+		glog.Infof("Delete Rule: Tenant: %s, rule: %+v", tenantID, ruleName)
 
 		if ruleName == "" {
 			return echo.NewHTTPError(http.StatusBadRequest, "No rule name provided")
@@ -172,8 +179,10 @@ func GetDeleteAlertHandler(client alert.PrometheusAlertClient, getRuleName param
 
 func GetUpdateAlertHandler(client alert.PrometheusAlertClient) func(c echo.Context) error {
 	return func(c echo.Context) error {
+		defer glog.Flush()
 		ruleName := c.Param(ruleNameParam)
 		tenantID := c.Get(tenantIDParam).(string)
+		glog.Infof("Update Rule: Tenant: %s, rule: %s", tenantID, ruleName)
 
 		if ruleName == "" {
 			return echo.NewHTTPError(http.StatusBadRequest, "No rule name provided")
@@ -188,7 +197,7 @@ func GetUpdateAlertHandler(client alert.PrometheusAlertClient) func(c echo.Conte
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		err = client.ValidateRule(rule)
+		err = alert.ValidateRule(rule)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
@@ -208,15 +217,16 @@ func GetUpdateAlertHandler(client alert.PrometheusAlertClient) func(c echo.Conte
 
 func GetBulkAlertUpdateHandler(client alert.PrometheusAlertClient) func(c echo.Context) error {
 	return func(c echo.Context) error {
+		defer glog.Flush()
 		tenantID := c.Get(tenantIDParam).(string)
-
 		rules, err := decodeBulkRulesPostRequest(c)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
+		glog.Infof("Bulk Update Rules: Tenant: %s, rules: %d", tenantID, len(rules))
 
 		for _, rule := range rules {
-			err = client.ValidateRule(rule)
+			err = alert.ValidateRule(rule)
 			if err != nil {
 				return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 			}
@@ -244,6 +254,7 @@ func GetGetTenancyHandler(client alert.PrometheusAlertClient) func(c echo.Contex
 func decodeRulePostRequest(c echo.Context) (rulefmt.Rule, error) {
 	body, err := ioutil.ReadAll(c.Request().Body)
 	if err != nil {
+		glog.Errorf("Error reading rule payload: %v", err)
 		return rulefmt.Rule{}, fmt.Errorf("error reading request body: %v", err)
 	}
 	// First try unmarshaling into prometheus rulefmt.Rule{}
@@ -256,6 +267,7 @@ func decodeRulePostRequest(c echo.Context) (rulefmt.Rule, error) {
 	jsonPayload := alert.RuleJSONWrapper{}
 	err = json.Unmarshal(body, &jsonPayload)
 	if err != nil {
+		glog.Errorf("Error unmarshaling rule payload: %v", err)
 		return payload, fmt.Errorf("error unmarshalling payload: %v", err)
 	}
 	return jsonPayload.ToRuleFmt()
@@ -264,6 +276,7 @@ func decodeRulePostRequest(c echo.Context) (rulefmt.Rule, error) {
 func decodeBulkRulesPostRequest(c echo.Context) ([]rulefmt.Rule, error) {
 	body, err := ioutil.ReadAll(c.Request().Body)
 	if err != nil {
+		glog.Errorf("Error reading bulk rules payload: %v", err)
 		return []rulefmt.Rule{}, fmt.Errorf("error reading request body: %v", err)
 	}
 	var payload []rulefmt.Rule
@@ -275,6 +288,7 @@ func decodeBulkRulesPostRequest(c echo.Context) ([]rulefmt.Rule, error) {
 	jsonPayload := []alert.RuleJSONWrapper{}
 	err = json.Unmarshal(body, &jsonPayload)
 	if err != nil {
+		glog.Errorf("Error unmarshaling bulk rules: %v", err)
 		return []rulefmt.Rule{}, fmt.Errorf("error unmarshalling payload: %v", err)
 	}
 	return rulesFromJSON(jsonPayload)

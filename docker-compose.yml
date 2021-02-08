@@ -14,6 +14,7 @@ services:
       - '-port=9100'
       - '-rules-dir=/etc/configs/alert_rules'
       - '-prometheusURL=prometheus:9090'
+      - '-stderrthreshold=INFO'
     volumes:
       - ./default_configs:/etc/configs
     ports:
@@ -31,6 +32,7 @@ services:
       - '-multitenant-label=tenant'
       - '-template-directory=/etc/configs/templates'
       - '-delete-route-with-receiver=true'
+      - '-stderrthreshold=INFO'
     volumes:
       - ./default_configs:/etc/configs
     ports:

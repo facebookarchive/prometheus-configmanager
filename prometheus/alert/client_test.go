@@ -73,10 +73,8 @@ var (
 	}
 )
 
-func TestClient_ValidateRule(t *testing.T) {
-	client := newTestClient("tenantID")
-
-	err := client.ValidateRule(sampleRule)
+func TestValidateRule(t *testing.T) {
+	err := alert.ValidateRule(sampleRule)
 	assert.NoError(t, err)
 
 	invalidRule := rulefmt.Rule{
@@ -84,7 +82,7 @@ func TestClient_ValidateRule(t *testing.T) {
 		Record: "x",
 		Alert:  "x",
 	}
-	err = client.ValidateRule(invalidRule)
+	err = alert.ValidateRule(invalidRule)
 	assert.Error(t, err)
 }
 func TestClient_RuleExists(t *testing.T) {

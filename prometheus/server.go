@@ -66,6 +66,7 @@ func main() {
 
 	e := echo.New()
 	e.Use(middleware.CORS())
+	e.Use(middleware.Logger())
 
 	handlers.RegisterBaseHandlers(e)
 	handlers.RegisterV0Handlers(e, alertClient)

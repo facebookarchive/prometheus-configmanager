@@ -22,7 +22,6 @@ import (
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/pkg/rulefmt"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 )
 
 var (
@@ -35,6 +34,10 @@ var (
 		Expr:        "up == 0",
 		Labels:      map[string]string{"label": "value"},
 		Annotations: map[string]string{"annotation": "value"},
+	}
+	sampleInvalidAlert = rulefmt.Rule{
+		Alert: "testInvalidAlert",
+		Expr:  "invalid{",
 	}
 	sampleAlert2 = rulefmt.Rule{
 		Alert:       "testAlert2",
@@ -71,7 +74,6 @@ const (
 func TestGetConfigureAlertHandler(t *testing.T) {
 	// Successful Post
 	client := &mocks.PrometheusAlertClient{}
-	client.On("ValidateRule", sampleAlert1).Return(nil)
 	client.On("RuleExists", testNID, sampleAlert1.Alert).Return(false)
 	client.On("WriteRule", testNID, sampleAlert1).Return(nil)
 	client.On("ReloadPrometheus").Return(nil)
@@ -84,17 +86,15 @@ func TestGetConfigureAlertHandler(t *testing.T) {
 
 	// Rule validation fails
 	client = &mocks.PrometheusAlertClient{}
-	client.On("ValidateRule", sampleAlert1).Return(errors.New("error"))
-	c, _ = buildContext(sampleAlert1, http.MethodPost, "/", v1alertPath, testNID)
+	c, _ = buildContext(sampleInvalidAlert, http.MethodPost, "/", v1alertPath, testNID)
 
 	err = GetConfigureAlertHandler(client)(c)
 	assert.Equal(t, http.StatusBadRequest, err.(*echo.HTTPError).Code)
-	assert.EqualError(t, err, `code=400, message=error`)
+	assert.EqualError(t, err, `code=400, message=Rule Validation Error; could not parse expression: 1:9: parse error: unexpected end of input inside braces`)
 	client.AssertExpectations(t)
 
 	// Rule already exists
 	client = &mocks.PrometheusAlertClient{}
-	client.On("ValidateRule", sampleAlert1).Return(nil)
 	client.On("RuleExists", testNID, sampleAlert1.Alert).Return(true)
 	c, _ = buildContext(sampleAlert1, http.MethodPost, "/", v1alertPath, testNID)
 
@@ -105,7 +105,6 @@ func TestGetConfigureAlertHandler(t *testing.T) {
 
 	// Write fails
 	client = &mocks.PrometheusAlertClient{}
-	client.On("ValidateRule", sampleAlert1).Return(nil)
 	client.On("RuleExists", testNID, sampleAlert1.Alert).Return(false)
 	client.On("WriteRule", testNID, sampleAlert1).Return(errors.New("error"))
 	c, _ = buildContext(sampleAlert1, http.MethodPost, "/", v1alertPath, testNID)
@@ -117,7 +116,6 @@ func TestGetConfigureAlertHandler(t *testing.T) {
 
 	// Reload Prometheus fails
 	client = &mocks.PrometheusAlertClient{}
-	client.On("ValidateRule", sampleAlert1).Return(nil)
 	client.On("RuleExists", testNID, sampleAlert1.Alert).Return(false)
 	client.On("WriteRule", testNID, sampleAlert1).Return(nil)
 	client.On("ReloadPrometheus").Return(errors.New("error"))
@@ -213,7 +211,6 @@ func TestUpdateAlertHandler(t *testing.T) {
 	// Successful Update
 	client := &mocks.PrometheusAlertClient{}
 	client.On("RuleExists", testNID, sampleAlert1.Alert).Return(true)
-	client.On("ValidateRule", sampleAlert1).Return(nil)
 	client.On("UpdateRule", testNID, sampleAlert1).Return(nil)
 	client.On("ReloadPrometheus").Return(nil)
 	c, rec := buildContext(sampleAlert1, http.MethodPut, "/", v1alertPath, testNID)
@@ -248,21 +245,19 @@ func TestUpdateAlertHandler(t *testing.T) {
 
 	// Validate rule fails
 	client = &mocks.PrometheusAlertClient{}
-	client.On("RuleExists", testNID, sampleAlert1.Alert).Return(true)
-	client.On("ValidateRule", sampleAlert1).Return(errors.New("error"))
-	c, _ = buildContext(sampleAlert1, http.MethodPut, "/", v1alertPath, testNID)
+	client.On("RuleExists", testNID, sampleInvalidAlert.Alert).Return(true)
+	c, _ = buildContext(sampleInvalidAlert, http.MethodPut, "/", v1alertPath, testNID)
 	c.SetParamNames("file_prefix", ruleNameParam)
-	c.SetParamValues(testNID, sampleAlert1.Alert)
+	c.SetParamValues(testNID, sampleInvalidAlert.Alert)
 
 	err = GetUpdateAlertHandler(client)(c)
 	assert.Equal(t, http.StatusBadRequest, err.(*echo.HTTPError).Code)
-	assert.EqualError(t, err, `code=400, message=error`)
+	assert.EqualError(t, err, `code=400, message=Rule Validation Error; could not parse expression: 1:9: parse error: unexpected end of input inside braces`)
 	client.AssertExpectations(t)
 
 	// Update rule fails
 	client = &mocks.PrometheusAlertClient{}
 	client.On("RuleExists", testNID, sampleAlert1.Alert).Return(true)
-	client.On("ValidateRule", sampleAlert1).Return(nil)
 	client.On("UpdateRule", testNID, sampleAlert1).Return(errors.New("error"))
 	c, _ = buildContext(sampleAlert1, http.MethodPut, "/", v1alertPath, testNID)
 	c.SetParamNames("file_prefix", ruleNameParam)
@@ -276,7 +271,6 @@ func TestUpdateAlertHandler(t *testing.T) {
 	// Reload Prometheus fails
 	client = &mocks.PrometheusAlertClient{}
 	client.On("RuleExists", testNID, sampleAlert1.Alert).Return(true)
-	client.On("ValidateRule", sampleAlert1).Return(nil)
 	client.On("UpdateRule", testNID, sampleAlert1).Return(nil)
 	client.On("ReloadPrometheus").Return(errors.New("error"))
 	c, _ = buildContext(sampleAlert1, http.MethodPut, "/", v1alertPath, testNID)
@@ -298,7 +292,6 @@ func TestGetBulkAlertUpdateHandler(t *testing.T) {
 		Statuses: map[string]string{"testAlert1": "created", "testAlert2": "created"},
 	}
 	client.On("BulkUpdateRules", testNID, bulkAlerts).Return(sampleUpdateResult, nil)
-	client.On("ValidateRule", mock.Anything).Return(nil)
 	client.On("ReloadPrometheus").Return(nil)
 
 	c, rec := buildContext([]rulefmt.Rule{sampleAlert1, sampleAlert2}, http.MethodPut, "/", "/:file_prefix/alert/bulk", testNID)
@@ -395,6 +388,30 @@ func TestDecodeRulePostRequest(t *testing.T) {
 	}{0}, http.MethodPost, "/", v1alertPath, testNID)
 	_, err = decodeRulePostRequest(c)
 	assert.EqualError(t, err, `error unmarshalling payload: json: cannot unmarshal number into Go struct field RuleJSONWrapper.alert of type string`)
+}
+
+func TestRuleValidate(t *testing.T) {
+	r := rulefmt.Rule{
+		Alert: "test",
+		Expr:  "test",
+	}
+	err := alert.ValidateRule(r)
+	assert.NoError(t, err)
+
+	r = rulefmt.Rule{
+		Alert: "test",
+		Expr:  `test{label="value"`,
+	}
+	err = alert.ValidateRule(r)
+	assert.EqualError(t, err, "Rule Validation Error; could not parse expression: 1:19: parse error: unexpected end of input inside braces")
+
+	r = rulefmt.Rule{
+		Alert:  "test",
+		Expr:   "test",
+		Labels: map[string]string{"1label": "value"},
+	}
+	err = alert.ValidateRule(r)
+	assert.EqualError(t, err, "Rule Validation Error; invalid label name: 1label")
 }
 
 func buildContext(body interface{}, method, target, path, tenantID string) (echo.Context, *httptest.ResponseRecorder) {

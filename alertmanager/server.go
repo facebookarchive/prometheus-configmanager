@@ -48,6 +48,7 @@ func main() {
 
 	e := echo.New()
 	e.Use(middleware.CORS())
+	e.Use(middleware.Logger())
 
 	fileLocks, err := alert.NewFileLocker(alert.NewDirectoryClient(*templateDirPath))
 	if err != nil {
