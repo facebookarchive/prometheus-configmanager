@@ -15,6 +15,7 @@ import (
 
 	"github.com/facebookincubator/prometheus-configmanager/alertmanager/client"
 	"github.com/facebookincubator/prometheus-configmanager/alertmanager/config"
+	"github.com/golang/glog"
 
 	"github.com/labstack/echo"
 )
@@ -144,11 +145,13 @@ func tenancyMiddlewareProvider(client client.AlertmanagerClient, getTenantID par
 // receiver and then reloads alertmanager
 func GetReceiverPostHandler(client client.AlertmanagerClient) func(c echo.Context) error {
 	return func(c echo.Context) error {
+		defer glog.Flush()
 		receiver, err := decodeReceiverPostRequest(c)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 		tenantID := c.Get(tenantIDParam).(string)
+		glog.Infof("Configure Receiver: Tenant: %s, receiver: %+v", tenantID, receiver)
 
 		err = client.CreateReceiver(tenantID, receiver)
 		if err != nil {
@@ -167,8 +170,10 @@ func GetReceiverPostHandler(client client.AlertmanagerClient) func(c echo.Contex
 // a filePrefix
 func GetGetReceiversHandler(client client.AlertmanagerClient) func(c echo.Context) error {
 	return func(c echo.Context) error {
+		defer glog.Flush()
 		tenantID := c.Get(tenantIDParam).(string)
 		receiverName := c.Param(receiverNameParam)
+		glog.Infof("Get Receiver: Tenant: %s, receiver: %s", tenantID, receiverName)
 
 		recs, err := client.GetReceivers(tenantID)
 		if err != nil {
@@ -206,8 +211,10 @@ func GetGetTenancyHandler(client client.AlertmanagerClient) func(c echo.Context)
 // GetUpdateReceiverHandler returns a handler function to update a receivers
 func GetUpdateReceiverHandler(client client.AlertmanagerClient, getReceiverName paramProvider) func(c echo.Context) error {
 	return func(c echo.Context) error {
+		defer glog.Flush()
 		tenantID := c.Get(tenantIDParam).(string)
 		receiverName := getReceiverName(c)
+		glog.Infof("Get Receiver: Tenant: %s, receiver: %s", tenantID, receiverName)
 
 		newReceiver, err := decodeReceiverPostRequest(c)
 		if err != nil {
@@ -229,7 +236,9 @@ func GetUpdateReceiverHandler(client client.AlertmanagerClient, getReceiverName 
 
 func GetDeleteReceiverHandler(client client.AlertmanagerClient, getReceiverName paramProvider) func(c echo.Context) error {
 	return func(c echo.Context) error {
+		defer glog.Flush()
 		tenantID := c.Get(tenantIDParam).(string)
+		glog.Infof("Delete Receiver: Tenant: %s, receiver: %s", tenantID, getReceiverName(c))
 
 		err := client.DeleteReceiver(tenantID, getReceiverName(c))
 		if err != nil {
@@ -246,7 +255,9 @@ func GetDeleteReceiverHandler(client client.AlertmanagerClient, getReceiverName 
 
 func GetGetRouteHandler(client client.AlertmanagerClient) func(c echo.Context) error {
 	return func(c echo.Context) error {
+		defer glog.Flush()
 		tenantID := c.Get(tenantIDParam).(string)
+		glog.Infof("Get Route: Tenant: %s", tenantID)
 
 		route, err := client.GetRoute(tenantID)
 		if err != nil {
@@ -258,7 +269,9 @@ func GetGetRouteHandler(client client.AlertmanagerClient) func(c echo.Context) e
 
 func GetUpdateRouteHandler(client client.AlertmanagerClient) func(c echo.Context) error {
 	return func(c echo.Context) error {
+		defer glog.Flush()
 		tenantID := c.Get(tenantIDParam).(string)
+		glog.Infof("Update Route: Tenant: %s", tenantID)
 
 		newRoute, err := decodeRoutePostRequest(c)
 		if err != nil {
@@ -279,6 +292,8 @@ func GetUpdateRouteHandler(client client.AlertmanagerClient) func(c echo.Context
 
 func GetUpdateGlobalConfigHandler(client client.AlertmanagerClient) func(c echo.Context) error {
 	return func(c echo.Context) error {
+		defer glog.Flush()
+		glog.Infof("Update Global Config")
 		newGlobalConfig, err := decodeGlobalConfigPostRequest(c)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
@@ -298,6 +313,8 @@ func GetUpdateGlobalConfigHandler(client client.AlertmanagerClient) func(c echo.
 
 func GetGetGlobalConfigHandler(client client.AlertmanagerClient) func(c echo.Context) error {
 	return func(c echo.Context) error {
+		defer glog.Flush()
+		glog.Infof("Get Global Config")
 		globalConf, err := client.GetGlobalConfig()
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
@@ -309,11 +326,13 @@ func GetGetGlobalConfigHandler(client client.AlertmanagerClient) func(c echo.Con
 func decodeGlobalConfigPostRequest(c echo.Context) (config.GlobalConfig, error) {
 	body, err := ioutil.ReadAll(c.Request().Body)
 	if err != nil {
+		glog.Errorf("error decoding global config: %v", err)
 		return config.GlobalConfig{}, fmt.Errorf("error reading request body: %v", err)
 	}
 	globalConfig := config.GlobalConfig{}
 	err = json.Unmarshal(body, &globalConfig)
 	if err != nil {
+		glog.Errorf("error decoding global config: %v", err)
 		return config.GlobalConfig{}, fmt.Errorf("error unmarshalling payload: %v", err)
 	}
 	return globalConfig, nil
@@ -322,6 +341,7 @@ func decodeGlobalConfigPostRequest(c echo.Context) (config.GlobalConfig, error) 
 func decodeReceiverPostRequest(c echo.Context) (config.Receiver, error) {
 	body, err := ioutil.ReadAll(c.Request().Body)
 	if err != nil {
+		glog.Errorf("error decoding receiver config: %v", err)
 		return config.Receiver{}, fmt.Errorf("error reading request body: %v", err)
 	}
 	receiver := config.Receiver{}
@@ -334,6 +354,7 @@ func decodeReceiverPostRequest(c echo.Context) (config.Receiver, error) {
 	jsonPayload := config.ReceiverJSONWrapper{}
 	err = json.Unmarshal(body, &jsonPayload)
 	if err != nil {
+		glog.Errorf("error decoding receiver config: %v", err)
 		return receiver, fmt.Errorf("error unmarshalling payload: %v", err)
 	}
 
@@ -343,11 +364,13 @@ func decodeReceiverPostRequest(c echo.Context) (config.Receiver, error) {
 func decodeRoutePostRequest(c echo.Context) (config.Route, error) {
 	body, err := ioutil.ReadAll(c.Request().Body)
 	if err != nil {
+		glog.Errorf("error decoding route config: %v", err)
 		return config.Route{}, fmt.Errorf("error reading request body: %v", err)
 	}
 	route := config.Route{}
 	err = json.Unmarshal(body, &route)
 	if err != nil {
+		glog.Errorf("error decoding route config: %v", err)
 		return config.Route{}, fmt.Errorf("error unmarshalling route: %v", err)
 	}
 	return route, nil

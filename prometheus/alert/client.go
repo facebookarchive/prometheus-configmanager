@@ -14,6 +14,10 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/golang/glog"
+	"github.com/pkg/errors"
+	"github.com/prometheus/common/model"
+	"github.com/prometheus/prometheus/promql/parser"
 	"gopkg.in/yaml.v3"
 
 	"github.com/facebookincubator/prometheus-configmanager/fsclient"
@@ -28,7 +32,6 @@ const (
 // PrometheusAlertClient provides thread-safe methods for writing, reading,
 // and modifying alert configuration files
 type PrometheusAlertClient interface {
-	ValidateRule(rule rulefmt.Rule) error
 	RuleExists(filePrefix, rulename string) bool
 	WriteRule(filePrefix string, rule rulefmt.Rule) error
 	UpdateRule(filePrefix string, rule rulefmt.Rule) error
@@ -61,21 +64,74 @@ func NewClient(fileLocks *FileLocker, prometheusURL string, fsClient fsclient.FS
 }
 
 // ValidateRule checks that a new alert rule is a valid specification
-func (c *client) ValidateRule(rule rulefmt.Rule) error {
+func ValidateRule(rule rulefmt.Rule) error {
 	// convert to RuleNode for validation
 	node := rulefmt.RuleNode{
 		Record:      yaml.Node{Value: rule.Record},
 		Alert:       yaml.Node{Value: rule.Alert},
 		Expr:        yaml.Node{Value: rule.Expr},
 		For:         0,
-		Labels:      nil,
-		Annotations: nil,
+		Labels:      rule.Labels,
+		Annotations: rule.Annotations,
 	}
-	errs := node.Validate()
-	if len(errs) != 0 {
-		return fmt.Errorf("invalid rule: %v", errs)
+	if len(node.Validate()) != 0 {
+		err := validateRuleImpl(node)
+		glog.Errorf("Invalid rule: %v", err)
+		return err
 	}
 	return nil
+}
+
+// validateRuleImpl determines the actual causes of the rule validation error.
+// Due to how the underlying prometheus types are made (unexported), we have to copy this code
+// and run it here to make it work. The actual validation is done with the package
+// code.
+func validateRuleImpl(r rulefmt.RuleNode) error {
+	err := errors.New("Rule Validation Error")
+	if r.Record.Value != "" && r.Alert.Value != "" {
+		err = fmt.Errorf("%v; only one of 'record' and 'alert' must be set", err)
+	}
+	if r.Record.Value == "" && r.Alert.Value == "" {
+		if r.Record.Value == "0" {
+			err = fmt.Errorf("%v; one of 'record' or 'alert' must be set", err)
+		} else {
+			err = fmt.Errorf("%v; one of 'record' or 'alert' must be set", err)
+		}
+	}
+
+	if r.Expr.Value == "" {
+		err = fmt.Errorf("%v; field 'expr' must be set in rule", err)
+	} else if _, e := parser.ParseExpr(r.Expr.Value); e != nil {
+		err = fmt.Errorf("%v; could not parse expression: %v", err, e)
+	}
+	if r.Record.Value != "" {
+		if len(r.Annotations) > 0 {
+			err = fmt.Errorf("%v; invalid field 'annotations' in recording rule", err)
+		}
+		if r.For != 0 {
+			err = fmt.Errorf("%v; invalid field 'for' in recording rule", err)
+		}
+		if !model.IsValidMetricName(model.LabelValue(r.Record.Value)) {
+			err = fmt.Errorf("%v; invalid recording rule name: %s", err, r.Record.Value)
+		}
+	}
+
+	for k, v := range r.Labels {
+		if !model.LabelName(k).IsValid() || k == model.MetricNameLabel {
+			err = fmt.Errorf("%v; invalid label name: %s", err, k)
+		}
+
+		if !model.LabelValue(v).IsValid() {
+			err = fmt.Errorf("%v; invalid label value: %s", err, v)
+		}
+	}
+
+	for k := range r.Annotations {
+		if !model.LabelName(k).IsValid() {
+			err = fmt.Errorf("%v; invalid annotation name: %s", err, k)
+		}
+	}
+	return err
 }
 
 func (c *client) RuleExists(filePrefix, rulename string) bool {
@@ -239,10 +295,12 @@ func (c *client) Tenancy() TenancyConfig {
 func (c *client) ReloadPrometheus() error {
 	resp, err := http.Post(fmt.Sprintf("http://%s%s", c.prometheusURL, "/-/reload"), "text/plain", &bytes.Buffer{})
 	if err != nil {
+		glog.Errorf("error reloading prometheus: %v", err)
 		return fmt.Errorf("error reloading prometheus: %v", err)
 	}
 	if resp.StatusCode != http.StatusOK {
 		body, _ := ioutil.ReadAll(resp.Body)
+		glog.Errorf("error reloading prometheus (status %d): %s", resp.StatusCode, string(body))
 		return fmt.Errorf("error reloading prometheus (status %d): %s", resp.StatusCode, string(body))
 	}
 	return nil
@@ -251,10 +309,12 @@ func (c *client) ReloadPrometheus() error {
 func (c *client) writeRuleFile(ruleFile *File, filename string) error {
 	yamlFile, err := yaml.Marshal(ruleFile)
 	if err != nil {
+		glog.Errorf("error writing rules file: %v", err)
 		return fmt.Errorf("error writing rules file: %v", err)
 	}
 	err = c.fsClient.WriteFile(filename, yamlFile, 0666)
 	if err != nil {
+		glog.Errorf("error writing rules file: %v", err)
 		return fmt.Errorf("error writing rules file: %v", err)
 	}
 	return nil
@@ -287,7 +347,8 @@ func (c *client) readRuleFile(requestedFile string) (*File, error) {
 	ruleFile := File{}
 	file, err := c.fsClient.ReadFile(requestedFile)
 	if err != nil {
-		return &File{}, fmt.Errorf("error reading rules files: %v", err)
+		glog.Errorf("error reading rules file: %v", err)
+		return &File{}, fmt.Errorf("error reading rules file: %v", err)
 	}
 	err = yaml.Unmarshal(file, &ruleFile)
 	return &ruleFile, err

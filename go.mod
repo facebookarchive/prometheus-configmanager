@@ -6,6 +6,7 @@ require (
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/labstack/echo v0.0.0-20181123063414-c54d9e8eed6c
 	github.com/labstack/gommon v0.2.8 // indirect
+	github.com/pkg/errors v0.9.1
 	github.com/prometheus/alertmanager v0.21.0
 	github.com/prometheus/common v0.11.1
 	github.com/prometheus/prometheus v1.8.2-0.20200819132913-cb830b0a9c78
