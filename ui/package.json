@@ -3,16 +3,16 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@fbcnms/alarms": "^0.1.9",
-    "@testing-library/jest-dom": "^4.2.4",
-    "@testing-library/react": "^9.3.2",
-    "@testing-library/user-event": "^7.1.2",
-    "flow-bin": "^0.124.0",
-    "notistack": "^0.8.5",
-    "react": "^16.13.1",
-    "react-dom": "^16.13.1",
+    "@fbcnms/alarms": "0.1.16",
+    "@testing-library/jest-dom": "^5.11.9",
+    "@testing-library/react": "^11.2.5",
+    "@testing-library/user-event": "^12.7.1",
+    "flow-bin": "^0.145.0",
+    "notistack": "^1.0.3",
+    "react": "^17.0.1",
+    "react-dom": "^17.0.1",
     "react-router-dom": "^5.2.0",
-    "react-scripts": "3.4.0"
+    "react-scripts": "4.0.2"
   },
   "scripts": {
     "start": "react-scripts start",
