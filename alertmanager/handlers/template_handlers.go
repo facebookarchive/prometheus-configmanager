@@ -85,7 +85,7 @@ func GetPutTemplateFileHandler(amClient client.AlertmanagerClient, tmplClient cl
 
 		err = tmplClient.EditTemplateFile(filename, body)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("error creating template file: %v", err))
+			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("error editing template file: %v", err))
 		}
 		return c.NoContent(http.StatusOK)
 	}
@@ -173,7 +173,7 @@ func GetPostTemplateHandler(amClient client.AlertmanagerClient, tmplClient clien
 			return echo.NewHTTPError(http.StatusInternalServerError, err)
 		}
 		if !exists {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("error getting template: file %s does not exist", filename))
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("error getting file: file %s does not exist", filename))
 		}
 
 		err = tmplClient.AddTemplate(filename, tmplName, tmplText)

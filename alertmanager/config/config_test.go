@@ -15,10 +15,10 @@ import (
 
 var (
 	testConfig = Config{
-		Global:       nil,
-		Route:        &Route{
-			Receiver:       "base",
-			Routes:         []*Route{
+		Global: nil,
+		Route: &Route{
+			Receiver: "base",
+			Routes: []*Route{
 				{Receiver: "testReceiver"},
 				{Receiver: "testReceiver2"},
 				{
@@ -30,8 +30,8 @@ var (
 				},
 			},
 		},
-		Receivers:    []*Receiver{{
-			Name:             "testReceiver",
+		Receivers: []*Receiver{{
+			Name: "testReceiver",
 		}},
 	}
 )
