@@ -29,18 +29,18 @@ var (
 )
 
 type templateTestCase struct {
-	Name string
-	Filename string
-	Payload interface{}
-	TmplClientFunc string
+	Name                     string
+	Filename                 string
+	Payload                  interface{}
+	TmplClientFunc           string
 	TmplClientExpectedParams []interface{}
 	TmplClientExpectedReturn []interface{}
 
-	AmClientFunc string
+	AmClientFunc           string
 	AmClientExpectedParams []interface{}
 	AmClientExpectedReturn []interface{}
 
-	HandlerFunc func(amClient client.AlertmanagerClient, tmplClient client.TemplateClient) func(c echo.Context) error
+	HandlerFunc   func(amClient client.AlertmanagerClient, tmplClient client.TemplateClient) func(c echo.Context) error
 	ExpectedError string
 }
 
@@ -75,20 +75,20 @@ func TestGetGetTemplateFileHandler(t *testing.T) {
 		TmplClientFunc:           "GetTemplateFile",
 		TmplClientExpectedParams: []interface{}{mock.Anything},
 		TmplClientExpectedReturn: []interface{}{"test file", nil},
-		HandlerFunc: GetGetTemplateFileHandler,
-		Filename: "file1",
+		HandlerFunc:              GetGetTemplateFileHandler,
+		Filename:                 "file1",
 	}
 	tests := []templateTestCase{
 		baseTest,
 		{
-			Name: "non-existent file",
-			Filename: "not_a_file",
+			Name:          "non-existent file",
+			Filename:      "not_a_file",
 			ExpectedError: "code=400, message=error getting file not_a_file: file does not exist",
 		},
 		{
-			Name: "template client error",
+			Name:                     "template client error",
 			TmplClientExpectedReturn: []interface{}{"test file", errors.New("template error")},
-			ExpectedError: "code=500, message=error getting template file: template error",
+			ExpectedError:            "code=500, message=error getting template file: template error",
 		},
 	}
 	runAllTests(t, tests, baseTest)
@@ -110,19 +110,19 @@ func TestGetPostTemplateFileHandler(t *testing.T) {
 	tests := []templateTestCase{
 		baseTest,
 		{
-			Name: "file already exists",
-			Filename: "file1",
+			Name:          "file already exists",
+			Filename:      "file1",
 			ExpectedError: "code=400, message=file file1 already exists",
 		},
 		{
-			Name: "template client error",
+			Name:                     "template client error",
 			TmplClientExpectedReturn: []interface{}{errors.New("template error")},
-			ExpectedError: "code=500, message=error creating template file: template error",
+			ExpectedError:            "code=500, message=error creating template file: template error",
 		},
 		{
-			Name: "alertmanager client error",
+			Name:                   "alertmanager client error",
 			AmClientExpectedReturn: []interface{}{errors.New("alertmanager error")},
-			ExpectedError: "code=500, message=error creating template file: alertmanager error",
+			ExpectedError:          "code=500, message=error creating template file: alertmanager error",
 		},
 	}
 	runAllTests(t, tests, baseTest)
@@ -141,14 +141,14 @@ func TestGetPutTemplateFileHandler(t *testing.T) {
 	tests := []templateTestCase{
 		baseTest,
 		{
-			Name: "file doesn't exist",
-			Filename: "not_a_file",
+			Name:          "file doesn't exist",
+			Filename:      "not_a_file",
 			ExpectedError: "code=400, message=error editing file not_a_file: file does not exist",
 		},
 		{
-			Name: "error editing file",
+			Name:                     "error editing file",
 			TmplClientExpectedReturn: []interface{}{errors.New("editing error")},
-			ExpectedError: "code=500, message=error editing template file: editing error",
+			ExpectedError:            "code=500, message=error editing template file: editing error",
 		},
 	}
 	runAllTests(t, tests, baseTest)
@@ -161,27 +161,27 @@ func TestGetDeleteTemplateFileHandler(t *testing.T) {
 		TmplClientFunc:           "DeleteTemplateFile",
 		TmplClientExpectedParams: []interface{}{mock.Anything, mock.Anything},
 		TmplClientExpectedReturn: []interface{}{nil},
-		AmClientFunc: "RemoveTemplateFile",
-		AmClientExpectedParams: []interface{}{mock.Anything},
-		AmClientExpectedReturn: []interface{}{nil},
+		AmClientFunc:             "RemoveTemplateFile",
+		AmClientExpectedParams:   []interface{}{mock.Anything},
+		AmClientExpectedReturn:   []interface{}{nil},
 		HandlerFunc:              GetDeleteTemplateFileHandler,
 	}
 	tests := []templateTestCase{
 		baseTest,
 		{
-			Name: "file doesn't exist",
-			Filename: "not_a_file",
+			Name:          "file doesn't exist",
+			Filename:      "not_a_file",
 			ExpectedError: "code=400, message=error deleting file: file not_a_file does not exist",
 		},
 		{
-			Name: "template client error",
+			Name:                     "template client error",
 			TmplClientExpectedReturn: []interface{}{errors.New("template error")},
-			ExpectedError: "code=500, message=error deleting template file: template error",
+			ExpectedError:            "code=500, message=error deleting template file: template error",
 		},
 		{
-			Name: "alertmanager client error",
+			Name:                   "alertmanager client error",
 			AmClientExpectedReturn: []interface{}{errors.New("alertmanager error")},
-			ExpectedError: "code=500, message=error deleting template file: alertmanager error",
+			ExpectedError:          "code=500, message=error deleting template file: alertmanager error",
 		},
 	}
 	runAllTests(t, tests, baseTest)
@@ -199,14 +199,14 @@ func TestGetGetTemplateHandler(t *testing.T) {
 	tests := []templateTestCase{
 		baseTest,
 		{
-			Name: "file doesn't exist",
-			Filename: "not_a_file",
+			Name:          "file doesn't exist",
+			Filename:      "not_a_file",
 			ExpectedError: "code=400, message=error getting template: file not_a_file does not exist",
 		},
 		{
-			Name: "template client error",
+			Name:                     "template client error",
 			TmplClientExpectedReturn: []interface{}{"", errors.New("template error")},
-			ExpectedError: "code=500, message=error getting template: template error",
+			ExpectedError:            "code=500, message=error getting template: template error",
 		},
 	}
 	runAllTests(t, tests, baseTest)
@@ -218,20 +218,20 @@ func TestGetGetTemplatesHandler(t *testing.T) {
 		Filename:                 "file1",
 		TmplClientFunc:           "GetTemplates",
 		TmplClientExpectedParams: []interface{}{mock.Anything},
-		TmplClientExpectedReturn: []interface{}{map[string]string{"a":"sample template"}, nil},
+		TmplClientExpectedReturn: []interface{}{map[string]string{"a": "sample template"}, nil},
 		HandlerFunc:              GetGetTemplatesHandler,
 	}
 	tests := []templateTestCase{
 		baseTest,
 		{
-			Name: "file doesn't exist",
-			Filename: "not_a_file",
+			Name:          "file doesn't exist",
+			Filename:      "not_a_file",
 			ExpectedError: "code=400, message=error getting file: file not_a_file does not exist",
 		},
 		{
-			Name: "template client error",
-			TmplClientExpectedReturn: []interface{}{map[string]string{"a":"sample template"}, errors.New("template error")},
-			ExpectedError: "code=500, message=error getting templates: template error",
+			Name:                     "template client error",
+			TmplClientExpectedReturn: []interface{}{map[string]string{"a": "sample template"}, errors.New("template error")},
+			ExpectedError:            "code=500, message=error getting templates: template error",
 		},
 	}
 	runAllTests(t, tests, baseTest)
@@ -249,14 +249,14 @@ func TestGetPostTemplateHandler(t *testing.T) {
 	tests := []templateTestCase{
 		baseTest,
 		{
-			Name: "file doesn't exist",
-			Filename: "not_a_file",
+			Name:          "file doesn't exist",
+			Filename:      "not_a_file",
 			ExpectedError: "code=400, message=error getting file: file not_a_file does not exist",
 		},
 		{
-			Name: "template client error",
+			Name:                     "template client error",
 			TmplClientExpectedReturn: []interface{}{errors.New("template error")},
-			ExpectedError: "code=500, message=error adding template: template error",
+			ExpectedError:            "code=500, message=error adding template: template error",
 		},
 	}
 	runAllTests(t, tests, baseTest)
@@ -274,14 +274,14 @@ func TestGetPutTemplateHandler(t *testing.T) {
 	tests := []templateTestCase{
 		baseTest,
 		{
-			Name: "file doesn't exist",
-			Filename: "not_a_file",
+			Name:          "file doesn't exist",
+			Filename:      "not_a_file",
 			ExpectedError: "code=400, message=error getting template: file not_a_file does not exist",
 		},
 		{
-			Name: "template client error",
+			Name:                     "template client error",
 			TmplClientExpectedReturn: []interface{}{errors.New("template error")},
-			ExpectedError: "code=500, message=error editing template: template error",
+			ExpectedError:            "code=500, message=error editing template: template error",
 		},
 	}
 	runAllTests(t, tests, baseTest)
@@ -299,19 +299,18 @@ func TestGetDeleteTemplateHandler(t *testing.T) {
 	tests := []templateTestCase{
 		baseTest,
 		{
-			Name: "file doesn't exist",
-			Filename: "not_a_file",
+			Name:          "file doesn't exist",
+			Filename:      "not_a_file",
 			ExpectedError: "code=400, message=error getting template: file not_a_file does not exist",
 		},
 		{
-			Name: "template client error",
+			Name:                     "template client error",
 			TmplClientExpectedReturn: []interface{}{errors.New("template error")},
-			ExpectedError: "code=500, message=error deleting template: template error",
+			ExpectedError:            "code=500, message=error deleting template: template error",
 		},
 	}
 	runAllTests(t, tests, baseTest)
 }
-
 
 func getTestAMClient() *mocks.AlertmanagerClient {
 	client := mocks.AlertmanagerClient{}
@@ -334,4 +333,3 @@ func runAllTests(t *testing.T, tests []templateTestCase, baseTest templateTestCa
 		t.Run(tc.Name, tc.RunTest)
 	}
 }
-

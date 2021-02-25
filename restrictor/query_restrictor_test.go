@@ -14,16 +14,21 @@ import (
 )
 
 type restrictorTestCase struct {
-	name       string
-	input      string
-	expected   string
-	restrictor *QueryRestrictor
+	name          string
+	input         string
+	expected      string
+	expectedError string
+	restrictor    *QueryRestrictor
 }
 
 func (tc *restrictorTestCase) RunTest(t *testing.T) {
 	output, err := tc.restrictor.RestrictQuery(tc.input)
-	assert.NoError(t, err)
-	assert.Equal(t, tc.expected, output)
+	if tc.expectedError == "" {
+		assert.NoError(t, err)
+		assert.Equal(t, tc.expected, output)
+		return
+	}
+	assert.EqualError(t, err, tc.expectedError)
 }
 
 func TestQueryRestrictor_RestrictQuery(t *testing.T) {
@@ -112,6 +117,12 @@ func TestQueryRestrictor_RestrictQuery(t *testing.T) {
 			input:      `metric1`,
 			expected:   `metric1{newLabel1=""}`,
 			restrictor: NewQueryRestrictor(DefaultOpts).AddMatcher("newLabel1"),
+		},
+		{
+			name:          "empty query",
+			input:         "",
+			expectedError: "empty query string",
+			restrictor:    singleLabelRestrictor,
 		},
 	}
 
