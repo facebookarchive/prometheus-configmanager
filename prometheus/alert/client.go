@@ -12,12 +12,14 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"sort"
 	"strings"
 
 	"github.com/golang/glog"
 	"github.com/pkg/errors"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/promql/parser"
+	"github.com/thoas/go-funk"
 	"gopkg.in/yaml.v3"
 
 	"github.com/facebookincubator/prometheus-configmanager/fsclient"
@@ -181,14 +183,14 @@ func (c *client) UpdateRule(filePrefix string, rule rulefmt.Rule) error {
 	c.fileLocks.Lock(filename)
 	defer c.fileLocks.Unlock(filename)
 
-	ruleFile, err := c.readOrInitializeRuleFile(filePrefix, filename)
+	ruleFile, err := c.readRuleFile(filename)
 	if err != nil {
-		return err
+		return fmt.Errorf("rule file %s does not exist: %v", filename, err)
 	}
 
 	err = SecureRule(c.tenancy.RestrictQueries, c.tenancy.RestrictorLabel, filePrefix, &rule)
 	if err != nil {
-		return err
+		return fmt.Errorf("cannot parse expression: \"%s\", %v", rule.Expr, err)
 	}
 
 	err = ruleFile.ReplaceRule(rule)
@@ -370,14 +372,18 @@ func (r BulkUpdateResults) String() string {
 	str := strings.Builder{}
 	if len(r.Errors) > 0 {
 		str.WriteString("Errors: \n")
-		for name, err := range r.Errors {
-			str.WriteString(fmt.Sprintf("\t%s: %s\n", name, err))
+		names := funk.Keys(r.Errors).([]string)
+		sort.Strings(names)
+		for _, name := range names {
+			str.WriteString(fmt.Sprintf("\t%s: %s\n", name, r.Errors[name]))
 		}
 	}
 	if len(r.Statuses) > 0 {
 		str.WriteString("Statuses: \n")
-		for name, status := range r.Statuses {
-			str.WriteString(fmt.Sprintf("\t%s: %s\n", name, status))
+		names := funk.Keys(r.Statuses).([]string)
+		sort.Strings(names)
+		for _, name := range names {
+			str.WriteString(fmt.Sprintf("\t%s: %s\n", name, r.Statuses[name]))
 		}
 	}
 	return str.String()
