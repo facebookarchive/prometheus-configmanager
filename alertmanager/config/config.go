@@ -113,7 +113,7 @@ func (c *Config) RemoveReceiverFromRoute(receiver string) {
 	for i, route := range c.Route.Routes {
 		c.Route.Routes[i] = removeReceiverFromRouteImpl(receiver, route)
 	}
-	prunedRoutes := funk.Filter(c.Route.Routes, func(x *Route) bool {return x != nil})
+	prunedRoutes := funk.Filter(c.Route.Routes, func(x *Route) bool { return x != nil })
 	c.Route.Routes = prunedRoutes.([]*Route)
 }
 
@@ -125,7 +125,7 @@ func removeReceiverFromRouteImpl(receiver string, route *Route) *Route {
 		route.Routes[i] = removeReceiverFromRouteImpl(receiver, childRoute)
 	}
 	// Remove nil routes from array
-	prunedRoutes := funk.Filter(route.Routes, func(x *Route) bool {return x != nil})
+	prunedRoutes := funk.Filter(route.Routes, func(x *Route) bool { return x != nil })
 	route.Routes = prunedRoutes.([]*Route)
 	return route
 }
